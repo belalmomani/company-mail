@@ -1,0 +1,12 @@
+# JavaMail / Activation use reflection and optional classes
+-keep class com.sun.mail.** { *; }
+-keep class javax.mail.** { *; }
+-keep class javax.activation.** { *; }
+-keep class myjava.awt.datatransfer.** { *; }
+-dontwarn java.awt.**
+-dontwarn javax.security.sasl.**
+-dontwarn javax.security.auth.callback.**
+-dontwarn org.apache.harmony.awt.**
+-dontwarn com.sun.mail.**
+-dontwarn javax.mail.**
+-dontwarn javax.activation.**

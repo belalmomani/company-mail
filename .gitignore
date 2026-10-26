@@ -1,0 +1,20 @@
+# Build outputs
+*.iml
+.gradle/
+build/
+local.properties
+.idea/
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Secrets - never commit
+*.jks
+*.keystore
+keystore.properties
+*.pem
+.env
+.env.*
+credentials*
+secrets*
