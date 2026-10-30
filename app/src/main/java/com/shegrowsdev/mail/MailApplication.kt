@@ -1,6 +1,7 @@
 package com.shegrowsdev.mail
 
 import android.app.Application
+import com.shegrowsdev.mail.data.AttachmentFiles
 import com.shegrowsdev.mail.notify.NotificationHelper
 import com.shegrowsdev.mail.notify.SyncScheduler
 import kotlinx.coroutines.CoroutineScope
@@ -17,8 +18,11 @@ class MailApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Attachment file names written with RFC 2047 encoding (common with Outlook) are decoded for display.
+        System.setProperty("mail.mime.decodefilename", "true")
         container = AppContainer(this)
         NotificationHelper.ensureChannel(this)
+        appScope.launch { AttachmentFiles.cleanOldFiles(this@MailApplication) }
 
         // Background checking runs only while at least one account has notifications enabled.
         appScope.launch {

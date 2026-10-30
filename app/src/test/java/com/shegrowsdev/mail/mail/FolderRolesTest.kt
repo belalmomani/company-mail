@@ -15,4 +15,15 @@ class FolderRolesTest {
         assertEquals(FolderRole.SPAM, FolderRoles.detect("Junk", emptyList()))
         assertEquals(FolderRole.OTHER, FolderRoles.detect("Projects", emptyList()))
     }
+
+    @Test fun detectsArchive() {
+        assertEquals(FolderRole.ARCHIVE, FolderRoles.detect("Old", listOf("\\Archive")))
+        assertEquals(FolderRole.ARCHIVE, FolderRoles.detect("INBOX.Archive", emptyList()))
+    }
+
+    @Test fun newFolderPathFollowsServerNamespace() {
+        assertEquals("INBOX.Archive", FolderRoles.siblingPath(listOf("INBOX", "INBOX.Sent"), "Archive"))
+        assertEquals("INBOX/Archive", FolderRoles.siblingPath(listOf("INBOX", "INBOX/Sent"), "Archive"))
+        assertEquals("Archive", FolderRoles.siblingPath(listOf("INBOX", "Sent", "Drafts"), "Archive"))
+    }
 }
