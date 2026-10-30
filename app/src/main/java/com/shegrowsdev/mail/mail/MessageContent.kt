@@ -18,11 +18,14 @@ internal class MessageContent(
             val html = collector.html
             val infos = collector.parts.mapIndexed { i, p -> describe(i, p) }
             return when {
-                !plain.isNullOrBlank() -> MessageContent(plain.trim('\r', '\n'), false, infos)
+                !plain.isNullOrBlank() -> MessageContent(normalizeNewlines(plain).trim('\n'), false, infos)
                 !html.isNullOrBlank() -> MessageContent(htmlToText(html), true, infos)
                 else -> MessageContent("", false, infos)
             }
         }
+
+        /** Mail uses CRLF on the wire; the app works with plain `\n` so replies, quoting and tests see one form. */
+        internal fun normalizeNewlines(text: String): String = text.replace("\r\n", "\n").replace('\r', '\n')
 
         /**
          * The attachment parts of [root] in the same order as [AttachmentInfo.index]. The traversal is
