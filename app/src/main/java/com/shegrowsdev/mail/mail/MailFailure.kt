@@ -7,6 +7,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.mail.AuthenticationFailedException
 import javax.mail.MessagingException
+import com.sun.mail.smtp.SMTPSendFailedException
 import javax.mail.SendFailedException
 import javax.net.ssl.SSLException
 
@@ -24,6 +25,20 @@ enum class FailureKind {
     NO_RECIPIENT,
     NO_PASSWORD,
     ACCOUNT_NOT_FOUND,
+    MESSAGE_TOO_LARGE,
+    ATTACH_TYPE,
+    ATTACH_CONTENT,
+    ATTACH_TOO_LARGE,
+    ATTACH_TOTAL_TOO_LARGE,
+    ATTACH_TOO_MANY,
+    ATTACH_READ,
+    ATTACH_DOWNLOAD,
+    ATTACH_NOT_FOUND,
+    ATTACH_SAVE,
+    NO_APP_TO_OPEN,
+    SEARCH_FAILED,
+    NOT_PERMITTED,
+    DATA_ERROR,
     UNKNOWN,
 }
 
@@ -58,16 +73,21 @@ internal fun Throwable.toMailFailure(protocol: Protocol): MailFailure {
             is SocketTimeoutException -> return MailFailure(FailureKind.TIMEOUT, cause = this)
             is ConnectException, is NoRouteToHostException, is SocketException ->
                 return MailFailure(FailureKind.CONNECT, cause = this)
-            is SendFailedException -> {
-                val rejected = (t.invalidAddresses.orEmpty().toList() + t.validUnsentAddresses.orEmpty().toList())
-                    .joinToString(", ") { it.toString() }
-                return MailFailure(
-                    FailureKind.SMTP_REJECTED,
-                    detail = rejected.ifBlank { null },
-                    cause = this
-                )
+            is SMTPSendFailedException -> {
+                // 552 = message exceeds the server's size/storage limit.
+                if (t.returnCode == 552) {
+                    return MailFailure(FailureKind.MESSAGE_TOO_LARGE, cause = this)
+                }
+                return t.asRejected(this)
             }
+            is SendFailedException -> return t.asRejected(this)
         }
     }
     return MailFailure(FailureKind.UNKNOWN, detail = javaClass.simpleName, cause = this)
+}
+
+private fun SendFailedException.asRejected(cause: Throwable): MailFailure {
+    val rejected = (invalidAddresses.orEmpty().toList() + validUnsentAddresses.orEmpty().toList())
+        .joinToString(", ") { it.toString() }
+    return MailFailure(FailureKind.SMTP_REJECTED, detail = rejected.ifBlank { null }, cause = cause)
 }

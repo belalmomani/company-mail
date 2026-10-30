@@ -1,5 +1,10 @@
 package com.shegrowsdev.mail.data
 
+import com.shegrowsdev.mail.mail.SignatureParts
+
+/** EMPLOYEE sees only own data; ADMIN sees the administrative data of every account on this device. */
+enum class AccountRole { EMPLOYEE, ADMIN }
+
 /**
  * A mail account. Connection settings are per account: nothing here assumes that
  * all employees share one server. Both IMAP and SMTP always use implicit SSL/TLS
@@ -15,14 +20,30 @@ data class Account(
     val imapPort: Int,
     val smtpHost: String,
     val smtpPort: Int,
+    /** Contact details line(s) of the Arabic / English signature (phase 1 called this "signature"). */
     val signatureAr: String = "",
     val signatureEn: String = "",
     val notificationsEnabled: Boolean = true,
+    val nameAr: String = "",
+    val titleAr: String = "",
+    val nameEn: String = "",
+    val titleEn: String = "",
+    /** Attach the company logo (a local image chosen in Settings) to the signature. */
+    val includeLogo: Boolean = false,
+    /** Decides which administrative data (tasks, register, statistics) this account may see. */
+    val role: AccountRole = AccountRole.EMPLOYEE,
 ) {
-    /** Signature matching the UI language, falling back to the other one if empty. */
-    fun signatureFor(languageTag: String): String =
-        if (languageTag.startsWith("ar")) signatureAr.ifBlank { signatureEn }
-        else signatureEn.ifBlank { signatureAr }
+    /**
+     * Signature for the UI language; if that language has nothing filled in, the other language's is
+     * used. A missing name falls back to the account's display name.
+     */
+    fun signaturePartsFor(languageTag: String): SignatureParts {
+        val ar = SignatureParts(nameAr, titleAr, signatureAr)
+        val en = SignatureParts(nameEn, titleEn, signatureEn)
+        val (primary, secondary) = if (languageTag.startsWith("ar")) ar to en else en to ar
+        val chosen = if (!primary.isEmpty) primary else secondary
+        return if (chosen.name.isBlank() && !chosen.isEmpty) chosen.copy(name = displayName.trim()) else chosen
+    }
 }
 
 /**

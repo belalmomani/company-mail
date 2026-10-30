@@ -38,6 +38,20 @@ fun FailureKind.messageRes(): Int = when (this) {
     FailureKind.NO_RECIPIENT -> R.string.err_no_recipient
     FailureKind.NO_PASSWORD -> R.string.err_no_password
     FailureKind.ACCOUNT_NOT_FOUND -> R.string.err_account_not_found
+    FailureKind.MESSAGE_TOO_LARGE -> R.string.err_message_too_large
+    FailureKind.ATTACH_TYPE -> R.string.err_attach_type
+    FailureKind.ATTACH_CONTENT -> R.string.err_attach_content
+    FailureKind.ATTACH_TOO_LARGE -> R.string.err_attach_too_large
+    FailureKind.ATTACH_TOTAL_TOO_LARGE -> R.string.err_attach_total_too_large
+    FailureKind.ATTACH_TOO_MANY -> R.string.err_attach_too_many
+    FailureKind.ATTACH_READ -> R.string.err_attach_read
+    FailureKind.ATTACH_DOWNLOAD -> R.string.err_attach_download
+    FailureKind.ATTACH_NOT_FOUND -> R.string.err_attach_not_found
+    FailureKind.ATTACH_SAVE -> R.string.err_attach_save
+    FailureKind.NO_APP_TO_OPEN -> R.string.err_no_app_to_open
+    FailureKind.SEARCH_FAILED -> R.string.err_search_failed
+    FailureKind.NOT_PERMITTED -> R.string.err_not_permitted
+    FailureKind.DATA_ERROR -> R.string.err_data
     FailureKind.UNKNOWN -> R.string.err_generic
 }
 
@@ -56,6 +70,7 @@ fun FolderRole.labelRes(): Int = when (this) {
     FolderRole.DRAFTS -> R.string.folder_drafts
     FolderRole.SPAM -> R.string.folder_spam
     FolderRole.TRASH -> R.string.folder_trash
+    FolderRole.ARCHIVE -> R.string.folder_archive
     FolderRole.OTHER -> R.string.folder_other
 }
 

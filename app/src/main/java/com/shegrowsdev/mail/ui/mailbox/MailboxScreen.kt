@@ -11,11 +11,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Drafts
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Inbox
@@ -23,8 +30,15 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.AllInbox
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -33,6 +47,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,23 +56,32 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.shegrowsdev.mail.AppContainer
 import com.shegrowsdev.mail.R
+import com.shegrowsdev.mail.mail.ConversationRow
+import com.shegrowsdev.mail.mail.Conversations
 import com.shegrowsdev.mail.mail.FolderRole
+import com.shegrowsdev.mail.mail.SortMode
 import com.shegrowsdev.mail.mail.MessageSummary
 import com.shegrowsdev.mail.ui.common.Notice
 import com.shegrowsdev.mail.ui.common.attempt
@@ -75,7 +99,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-private val navigableRoles = listOf(FolderRole.INBOX, FolderRole.SENT, FolderRole.DRAFTS, FolderRole.SPAM)
+private val navigableRoles = listOf(
+    FolderRole.INBOX, FolderRole.SENT, FolderRole.DRAFTS, FolderRole.SPAM, FolderRole.ARCHIVE, FolderRole.TRASH
+)
 
 class MailboxViewModel(private val container: AppContainer) : ViewModel() {
 
@@ -86,7 +112,19 @@ class MailboxViewModel(private val container: AppContainer) : ViewModel() {
         val loadingMore: Boolean = false,
         val hasMore: Boolean = false,
         val error: Notice? = null,
-    )
+        val sort: SortMode = SortMode.NEWEST_FIRST,
+        /** Messages with the same subject are shown as one row (applies to the loaded messages). */
+        val grouped: Boolean = false,
+        val searchActive: Boolean = false,
+        val query: String = "",
+        val searching: Boolean = false,
+        /** Null until a search has run; then the matches (possibly empty). */
+        val searchResults: List<MessageSummary>? = null,
+        val searchPartial: Boolean = false,
+    ) {
+        /** A fresh list for another folder/account that keeps the user's view options. */
+        fun reset(role: FolderRole = this.role) = UiState(role = role, sort = sort, grouped = grouped)
+    }
 
     private val _state = MutableStateFlow(UiState())
     val state: StateFlow<UiState> = _state.asStateFlow()
@@ -94,6 +132,8 @@ class MailboxViewModel(private val container: AppContainer) : ViewModel() {
     private var accountId: String? = null
     private var page = 0
     private var job: Job? = null
+    private var searchJob: Job? = null
+    private var resumedBefore = false
 
     init {
         viewModelScope.launch {
@@ -104,7 +144,7 @@ class MailboxViewModel(private val container: AppContainer) : ViewModel() {
                     accountId = id
                     if (id == null) {
                         job?.cancel()
-                        _state.update { UiState(role = it.role) }
+                        _state.update { it.reset() }
                     } else {
                         load(clear = true)
                     }
@@ -114,9 +154,50 @@ class MailboxViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun selectRole(role: FolderRole) {
-        if (role == _state.value.role) return
-        _state.update { UiState(role = role) }
+        if (role == _state.value.role && !_state.value.searchActive) return
+        searchJob?.cancel()
+        _state.update { it.reset(role) }
         load(clear = true)
+    }
+
+    fun setSort(mode: SortMode) = _state.update { it.copy(sort = mode) }
+    fun setGrouped(on: Boolean) = _state.update { it.copy(grouped = on) }
+
+    // ------------------------------------------------------------ search
+
+    fun openSearch() = _state.update { it.copy(searchActive = true) }
+
+    fun closeSearch() {
+        searchJob?.cancel()
+        _state.update { it.copy(searchActive = false, query = "", searching = false, searchResults = null, searchPartial = false) }
+    }
+
+    fun onQuery(q: String) = _state.update { it.copy(query = q) }
+
+    fun submitSearch() {
+        val id = accountId ?: return
+        val q = _state.value.query.trim()
+        if (q.isEmpty()) return
+        val role = _state.value.role
+        searchJob?.cancel()
+        _state.update { it.copy(searching = true, error = null) }
+        searchJob = viewModelScope.launch {
+            attempt { container.repository.search(id, role, q) }
+                .onSuccess { r ->
+                    _state.update { it.copy(searching = false, searchResults = r.items, searchPartial = r.partialScan) }
+                }
+                .onFailure { e -> _state.update { it.copy(searching = false, error = e.toNotice()) } }
+        }
+    }
+
+    /** Coming back from another screen (e.g. after deleting/archiving or reading): bring the list up to date. */
+    fun onResume() {
+        if (!resumedBefore) {
+            resumedBefore = true
+            return
+        }
+        if (accountId == null) return
+        if (_state.value.searchActive) submitSearch() else load(clear = false)
     }
 
     fun refresh() = load(clear = false)
@@ -125,7 +206,7 @@ class MailboxViewModel(private val container: AppContainer) : ViewModel() {
         val id = accountId ?: return
         job?.cancel()
         page = 0
-        _state.update { (if (clear) UiState(role = it.role) else it).copy(loading = true, error = null) }
+        _state.update { (if (clear) it.reset() else it).copy(loading = true, error = null) }
         val role = _state.value.role
         job = viewModelScope.launch {
             attempt { container.repository.page(id, role, 0) }
@@ -166,6 +247,8 @@ private fun FolderRole.icon(): ImageVector = when (this) {
     FolderRole.SENT -> Icons.AutoMirrored.Filled.Send
     FolderRole.DRAFTS -> Icons.Filled.Drafts
     FolderRole.SPAM -> Icons.Filled.Report
+    FolderRole.ARCHIVE -> Icons.Filled.Archive
+    FolderRole.TRASH -> Icons.Filled.Delete
     else -> Icons.Filled.Inbox
 }
 
@@ -177,6 +260,11 @@ fun MailboxScreen(
     onCompose: () -> Unit,
     onSettings: () -> Unit,
     onAddAccount: () -> Unit,
+    onUnified: () -> Unit,
+    onTasks: () -> Unit,
+    onRegister: () -> Unit,
+    onFollowUps: () -> Unit,
+    onDashboard: () -> Unit,
 ) {
     val container = rememberContainer()
     val vm = containerViewModel { MailboxViewModel(it) }
@@ -188,6 +276,15 @@ fun MailboxScreen(
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    var viewMenuOpen by remember { mutableStateOf(false) }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { vm.onResume() }
+
+    val source = if (state.searchActive) state.searchResults.orEmpty() else state.items
+    val rows: List<ConversationRow> = remember(source, state.sort, state.grouped) {
+        val sorted = Conversations.sort(source, state.sort)
+        if (state.grouped) Conversations.group(sorted) else Conversations.single(sorted)
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -247,6 +344,25 @@ fun MailboxScreen(
                         )
                     }
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    listOf(
+                        Triple(R.string.unified_title, Icons.Filled.AllInbox, onUnified),
+                        Triple(R.string.tasks_title, Icons.AutoMirrored.Filled.Assignment, onTasks),
+                        Triple(R.string.register_title, Icons.AutoMirrored.Filled.MenuBook, onRegister),
+                        Triple(R.string.followups_title, Icons.Filled.Alarm, onFollowUps),
+                        Triple(R.string.dash_title, Icons.Filled.Dashboard, onDashboard),
+                    ).forEach { (label, icon, action) ->
+                        NavigationDrawerItem(
+                            label = { Text(stringResource(label)) },
+                            icon = { Icon(icon, null) },
+                            selected = false,
+                            onClick = {
+                                scope.launch { drawerState.close() }
+                                action()
+                            },
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     NavigationDrawerItem(
                         label = { Text(stringResource(R.string.settings_title)) },
                         icon = { Icon(Icons.Filled.Settings, null) },
@@ -263,31 +379,85 @@ fun MailboxScreen(
     ) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Column {
-                            Text(stringResource(state.role.labelRes()))
-                            activeAccount?.let {
-                                Text(
-                                    it.email.ltr(),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                if (state.searchActive) {
+                    TopAppBar(
+                        title = {
+                            OutlinedTextField(
+                                value = state.query,
+                                onValueChange = vm::onQuery,
+                                singleLine = true,
+                                placeholder = { Text(stringResource(R.string.search_hint)) },
+                                textStyle = TextStyle(textDirection = TextDirection.Content),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                keyboardActions = KeyboardActions(onSearch = { vm.submitSearch() }),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = vm::closeSearch) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.action_back))
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = vm::submitSearch, enabled = state.query.isNotBlank() && !state.searching) {
+                                Icon(Icons.Filled.Search, stringResource(R.string.action_search))
                             }
                         }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, stringResource(R.string.action_menu))
+                    )
+                } else {
+                    TopAppBar(
+                        title = {
+                            Column {
+                                Text(stringResource(state.role.labelRes()))
+                                activeAccount?.let {
+                                    Text(
+                                        it.email.ltr(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Filled.Menu, stringResource(R.string.action_menu))
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = vm::openSearch) {
+                                Icon(Icons.Filled.Search, stringResource(R.string.action_search))
+                            }
+                            IconButton(onClick = vm::refresh, enabled = !state.loading) {
+                                Icon(Icons.Filled.Refresh, stringResource(R.string.action_refresh))
+                            }
+                            Box {
+                                IconButton(onClick = { viewMenuOpen = true }) {
+                                    Icon(Icons.Filled.MoreVert, stringResource(R.string.view_options))
+                                }
+                                DropdownMenu(expanded = viewMenuOpen, onDismissRequest = { viewMenuOpen = false }) {
+                                    listOf(
+                                        SortMode.NEWEST_FIRST to R.string.sort_newest,
+                                        SortMode.OLDEST_FIRST to R.string.sort_oldest,
+                                        SortMode.UNREAD_FIRST to R.string.sort_unread_first,
+                                    ).forEach { (mode, label) ->
+                                        DropdownMenuItem(
+                                            text = { Text((if (state.sort == mode) "✓ " else "") + stringResource(label)) },
+                                            onClick = { vm.setSort(mode); viewMenuOpen = false }
+                                        )
+                                    }
+                                    HorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text((if (state.grouped) "✓ " else "") + stringResource(R.string.view_group_conversations))
+                                        },
+                                        onClick = { vm.setGrouped(!state.grouped); viewMenuOpen = false }
+                                    )
+                                }
+                            }
                         }
-                    },
-                    actions = {
-                        IconButton(onClick = vm::refresh, enabled = !state.loading) {
-                            Icon(Icons.Filled.Refresh, stringResource(R.string.action_refresh))
-                        }
-                    }
-                )
+                    )
+                }
             },
             floatingActionButton = {
                 ExtendedFloatingActionButton(
@@ -299,10 +469,10 @@ fun MailboxScreen(
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 when {
-                    state.items.isEmpty() && state.loading ->
+                    rows.isEmpty() && (state.loading || state.searching) ->
                         CircularProgressIndicator(Modifier.align(Alignment.Center))
 
-                    state.items.isEmpty() && state.error != null -> Column(
+                    rows.isEmpty() && state.error != null -> Column(
                         Modifier.align(Alignment.Center).padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -315,13 +485,29 @@ fun MailboxScreen(
                         TextButton(onClick = vm::refresh) { Text(stringResource(R.string.action_retry)) }
                     }
 
-                    state.items.isEmpty() -> Text(
-                        stringResource(R.string.mailbox_empty),
+                    rows.isEmpty() -> Text(
+                        stringResource(
+                            when {
+                                !state.searchActive -> R.string.mailbox_empty
+                                state.searchResults == null -> R.string.search_hint
+                                else -> R.string.search_no_results
+                            }
+                        ),
                         modifier = Modifier.align(Alignment.Center),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     else -> LazyColumn(Modifier.fillMaxSize()) {
+                        if (state.searchActive && state.searchPartial) {
+                            item {
+                                Text(
+                                    stringResource(R.string.search_partial_notice),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                            }
+                        }
                         state.error?.let { n ->
                             item {
                                 Row(
@@ -339,11 +525,14 @@ fun MailboxScreen(
                                 }
                             }
                         }
-                        items(state.items, key = { it.uid }) { m ->
+                        items(rows, key = { it.latest.uid }) { row ->
+                            val m = row.latest
                             MessageRow(
                                 summary = m,
                                 role = state.role,
                                 dateText = formatDateTime(context, m.dateMillis),
+                                count = row.count,
+                                unreadCount = row.unread,
                                 onClick = {
                                     if (state.role == FolderRole.DRAFTS) onOpenDraft(m.uid)
                                     else onOpenMessage(state.role, m.uid)
@@ -351,7 +540,7 @@ fun MailboxScreen(
                             )
                             HorizontalDivider()
                         }
-                        if (state.hasMore) {
+                        if (state.hasMore && !state.searchActive) {
                             item {
                                 Box(Modifier.fillMaxWidth().padding(12.dp), contentAlignment = Alignment.Center) {
                                     if (state.loadingMore) {
@@ -376,9 +565,11 @@ private fun MessageRow(
     summary: MessageSummary,
     role: FolderRole,
     dateText: String,
+    count: Int,
+    unreadCount: Int,
     onClick: () -> Unit,
 ) {
-    val unread = !summary.seen && role != FolderRole.SENT && role != FolderRole.DRAFTS
+    val unread = unreadCount > 0 && role != FolderRole.SENT && role != FolderRole.DRAFTS
     val weight = if (unread) FontWeight.Bold else FontWeight.Normal
     val contentDirection = TextStyle(textDirection = TextDirection.Content)
 
@@ -389,6 +580,8 @@ private fun MessageRow(
         summary.from?.display ?: stringResource(R.string.mailbox_unknown_sender)
     }
 
+    val partyText = if (count > 1) "$party ($count)" else party
+
     Column(
         Modifier
             .fillMaxWidth()
@@ -397,7 +590,7 @@ private fun MessageRow(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                party,
+                partyText,
                 modifier = Modifier.weight(1f),
                 fontWeight = weight,
                 maxLines = 1,

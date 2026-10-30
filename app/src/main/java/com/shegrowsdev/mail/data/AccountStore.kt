@@ -2,6 +2,7 @@ package com.shegrowsdev.mail.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,8 +17,9 @@ data class NotifyMarker(val validity: Long, val lastUid: Long)
  * Keystore-encrypted passwords. Account metadata contains no secrets.
  */
 class AccountStore(context: Context) {
+    private val appContext: Context = context.applicationContext
     private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private val lock = Any()
 
     private val _accounts = MutableStateFlow(readAccounts())
@@ -25,6 +27,11 @@ class AccountStore(context: Context) {
 
     private val _activeId = MutableStateFlow(prefs.getString(KEY_ACTIVE, null))
     val activeId: StateFlow<String?> = _activeId.asStateFlow()
+
+    /** Where the signature logo of an account lives (app-private storage). The file may not exist. */
+    fun logoFile(id: String): File = File(File(appContext.filesDir, "signature-logos"), "$id.png")
+
+    fun hasLogo(id: String): Boolean = logoFile(id).isFile
 
     fun get(id: String): Account? = _accounts.value.firstOrNull { it.id == id }
 
@@ -62,8 +69,23 @@ class AccountStore(context: Context) {
             .remove(KEY_NOTIFY_UID + id)
             .putString(KEY_ACTIVE, newActive)
             .apply()
+        runCatching { logoFile(id).delete() }
         _accounts.value = list
         _activeId.value = newActive
+    }
+
+    /** Promoting to ADMIN needs the account's own password (checked by the caller via [passwordMatches]). */
+    fun setRole(id: String, role: AccountRole) = synchronized(lock) {
+        val current = get(id) ?: return@synchronized
+        update(current.copy(role = role))
+    }
+
+    fun passwordMatches(id: String, candidate: String): Boolean {
+        val saved = password(id) ?: return false
+        // Constant-time comparison of the two strings.
+        return java.security.MessageDigest.isEqual(
+            saved.toByteArray(Charsets.UTF_8), candidate.toByteArray(Charsets.UTF_8)
+        )
     }
 
     fun setActive(id: String) = synchronized(lock) {
@@ -113,6 +135,13 @@ class AccountStore(context: Context) {
                     signatureAr = o.optString("signatureAr"),
                     signatureEn = o.optString("signatureEn"),
                     notificationsEnabled = o.optBoolean("notificationsEnabled", true),
+                    nameAr = o.optString("nameAr"),
+                    titleAr = o.optString("titleAr"),
+                    nameEn = o.optString("nameEn"),
+                    titleEn = o.optString("titleEn"),
+                    includeLogo = o.optBoolean("includeLogo", false),
+                    role = runCatching { AccountRole.valueOf(o.optString("role", "EMPLOYEE")) }
+                        .getOrDefault(AccountRole.EMPLOYEE),
                 )
             }
         } catch (e: Exception) {
@@ -135,6 +164,12 @@ class AccountStore(context: Context) {
                     .put("signatureAr", a.signatureAr)
                     .put("signatureEn", a.signatureEn)
                     .put("notificationsEnabled", a.notificationsEnabled)
+                    .put("nameAr", a.nameAr)
+                    .put("titleAr", a.titleAr)
+                    .put("nameEn", a.nameEn)
+                    .put("titleEn", a.titleEn)
+                    .put("includeLogo", a.includeLogo)
+                    .put("role", a.role.name)
             )
         }
         return arr.toString()

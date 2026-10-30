@@ -12,8 +12,8 @@ android {
         applicationId = "com.shegrowsdev.mail"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0-phase1"
+        versionCode = 3
+        versionName = "0.3.0-phase3"
     }
 
     buildTypes {
@@ -38,6 +38,10 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
 
     packaging {
@@ -78,4 +82,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     testImplementation("junit:junit:4.13.2")
+    // Real SQLite on the JVM for the administrative-data tests (no emulator needed).
+    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation("androidx.test:core:1.6.1")
 }

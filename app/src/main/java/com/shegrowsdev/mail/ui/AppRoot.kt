@@ -21,19 +21,32 @@ import com.shegrowsdev.mail.AppContainer
 import com.shegrowsdev.mail.mail.FolderRole
 import com.shegrowsdev.mail.ui.accounts.AccountSetupScreen
 import com.shegrowsdev.mail.ui.compose.ComposeMode
+import com.shegrowsdev.mail.ui.dashboard.DashboardScreen
+import com.shegrowsdev.mail.ui.followups.FollowUpsScreen
+import com.shegrowsdev.mail.ui.register.RegisterScreen
+import com.shegrowsdev.mail.ui.tasks.TaskDetailScreen
+import com.shegrowsdev.mail.ui.tasks.TasksScreen
+import com.shegrowsdev.mail.ui.unified.UnifiedInboxScreen
 import com.shegrowsdev.mail.ui.compose.ComposeScreen
 import com.shegrowsdev.mail.ui.mailbox.MailboxScreen
 import com.shegrowsdev.mail.ui.message.MessageScreen
 import com.shegrowsdev.mail.ui.settings.SettingsScreen
 import com.shegrowsdev.mail.ui.theme.CompanyMailTheme
 
-private object Routes {
+internal object Routes {
     const val SETUP = "setup"
     const val MAILBOX = "mailbox"
     const val SETTINGS = "settings"
+    const val UNIFIED = "unified"
+    const val TASKS = "tasks"
+    const val TASK = "task/{id}"
+    const val REGISTER = "register"
+    const val FOLLOWUPS = "followups"
+    const val DASHBOARD = "dashboard"
     const val MESSAGE = "message/{role}/{uid}"
     const val COMPOSE = "compose/{mode}/{role}/{uid}"
 
+    fun task(id: Long) = "task/$id"
     fun message(role: FolderRole, uid: Long) = "message/${role.name}/$uid"
     fun compose(mode: ComposeMode, role: FolderRole, uid: Long) = "compose/${mode.name}/${role.name}/$uid"
 }
@@ -48,6 +61,16 @@ fun AppRoot(container: AppContainer) {
         }
 
         RequestNotificationPermissionOnce(container, hasAccounts = accounts.isNotEmpty())
+
+        // A screen requested from a reminder notification; only valid once an account exists.
+        val pendingRoute by container.pendingRoute.collectAsStateWithLifecycle()
+        LaunchedEffect(pendingRoute, accounts.isNotEmpty()) {
+            val route = pendingRoute
+            if (route != null && accounts.isNotEmpty()) {
+                container.requestRoute(null)
+                nav.navigate(route) { launchSingleTop = true }
+            }
+        }
 
         NavHost(navController = nav, startDestination = startDestination) {
 
@@ -74,7 +97,53 @@ fun AppRoot(container: AppContainer) {
                     },
                     onSettings = { nav.navigate(Routes.SETTINGS) },
                     onAddAccount = { nav.navigate(Routes.SETUP) },
+                    onUnified = { nav.navigate(Routes.UNIFIED) },
+                    onTasks = { nav.navigate(Routes.TASKS) },
+                    onRegister = { nav.navigate(Routes.REGISTER) },
+                    onFollowUps = { nav.navigate(Routes.FOLLOWUPS) },
+                    onDashboard = { nav.navigate(Routes.DASHBOARD) },
                 )
+            }
+
+            composable(Routes.UNIFIED) {
+                UnifiedInboxScreen(
+                    onBack = { nav.popBackStack() },
+                    onOpenMessage = { role, uid -> nav.navigate(Routes.message(role, uid)) },
+                )
+            }
+
+            composable(Routes.TASKS) {
+                TasksScreen(onBack = { nav.popBackStack() }, onOpenTask = { id -> nav.navigate(Routes.task(id)) })
+            }
+
+            composable(
+                Routes.TASK,
+                arguments = listOf(navArgument("id") { type = NavType.LongType })
+            ) { entry ->
+                val id = entry.arguments?.getLong("id") ?: return@composable
+                TaskDetailScreen(
+                    taskId = id,
+                    onBack = { nav.popBackStack() },
+                    onOpenMessage = { role, uid -> nav.navigate(Routes.message(role, uid)) },
+                )
+            }
+
+            composable(Routes.REGISTER) {
+                RegisterScreen(
+                    onBack = { nav.popBackStack() },
+                    onOpenMessage = { role, uid -> nav.navigate(Routes.message(role, uid)) },
+                )
+            }
+
+            composable(Routes.FOLLOWUPS) {
+                FollowUpsScreen(
+                    onBack = { nav.popBackStack() },
+                    onOpenMessage = { role, uid -> nav.navigate(Routes.message(role, uid)) },
+                )
+            }
+
+            composable(Routes.DASHBOARD) {
+                DashboardScreen(onBack = { nav.popBackStack() })
             }
 
             composable(

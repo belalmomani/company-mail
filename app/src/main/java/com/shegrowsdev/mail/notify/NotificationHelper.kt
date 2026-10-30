@@ -13,11 +13,15 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.shegrowsdev.mail.MainActivity
 import com.shegrowsdev.mail.R
+import com.shegrowsdev.mail.admin.FollowUpWithRef
 import com.shegrowsdev.mail.data.Account
 import com.shegrowsdev.mail.mail.MessageSummary
 
 object NotificationHelper {
     const val CHANNEL_ID = "new_mail"
+    const val CHANNEL_FOLLOW_UPS = "follow_ups"
+    private const val ID_FOLLOW_APPROACHING = 9001
+    private const val ID_FOLLOW_OVERDUE = 9002
 
     fun ensureChannel(context: Context) {
         val channel = NotificationChannel(
@@ -25,7 +29,69 @@ object NotificationHelper {
             context.getString(R.string.notif_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply { description = context.getString(R.string.notif_channel_desc) }
-        context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(channel)
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_FOLLOW_UPS,
+                context.getString(R.string.notif_followup_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply { description = context.getString(R.string.notif_followup_channel_desc) }
+        )
+    }
+
+    /**
+     * One notification per stage (approaching / overdue). Returns true only when it was really posted, so
+     * the caller marks the reminders as notified only then and a missing permission never loses a reminder.
+     */
+    fun notifyFollowUps(context: Context, stage: Int, items: List<FollowUpWithRef>, route: String): Boolean {
+        if (items.isEmpty()) return true
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return false
+
+        val title = context.getString(R.string.notif_followup_title)
+        val countText = context.getString(
+            if (stage >= 2) R.string.notif_followup_overdue else R.string.notif_followup_approaching,
+            items.size
+        )
+        val open = PendingIntent.getActivity(
+            context,
+            9000 + stage,
+            Intent(context, MainActivity::class.java)
+                .putExtra(MainActivity.EXTRA_ROUTE, route)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        // Subjects are private: the lock screen only shows the generic count.
+        val publicVersion = NotificationCompat.Builder(context, CHANNEL_FOLLOW_UPS)
+            .setSmallIcon(R.drawable.ic_stat_mail)
+            .setContentTitle(title)
+            .setContentText(countText)
+            .build()
+        val style = NotificationCompat.InboxStyle()
+        items.take(5).forEach { f ->
+            style.addLine(f.ref.subject.ifBlank { context.getString(R.string.mailbox_no_subject) })
+        }
+        val notification = NotificationCompat.Builder(context, CHANNEL_FOLLOW_UPS)
+            .setSmallIcon(R.drawable.ic_stat_mail)
+            .setContentTitle(title)
+            .setContentText(countText)
+            .setStyle(style)
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(publicVersion)
+            .setOnlyAlertOnce(true)
+            .build()
+        return try {
+            NotificationManagerCompat.from(context)
+                .notify(if (stage >= 2) ID_FOLLOW_OVERDUE else ID_FOLLOW_APPROACHING, notification)
+            true
+        } catch (e: SecurityException) {
+            false
+        }
     }
 
     fun notifyNewMail(context: Context, account: Account, fresh: List<MessageSummary>) {

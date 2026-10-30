@@ -24,9 +24,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun switchAccountFrom(intent: Intent?, container: AppContainer) {
         intent?.getStringExtra(EXTRA_ACCOUNT_ID)?.let { container.accountStore.setActive(it) }
+        intent?.getStringExtra(EXTRA_ROUTE)?.let { container.requestRoute(it) }
     }
 
     companion object {
         const val EXTRA_ACCOUNT_ID = "account_id"
+        const val EXTRA_ROUTE = "route"
     }
 }

@@ -31,7 +31,6 @@
     <string name="message_forward">Forward</string>
     <string name="message_truncated">The message is long; only the first part is shown.</string>
     <string name="message_html_notice">This message was formatted; it is shown here as plain text.</string>
-    <string name="message_attachments_notice">This message has attachments. Viewing attachments is not available in this version.</string>
     <string name="compose_title_new">New message</string>
     <string name="compose_to">To</string>
     <string name="compose_cc">Cc</string>
@@ -51,7 +50,6 @@
     <string name="compose_keep_editing">Keep editing</string>
     <string name="compose_wrote" formatted="true">On %1$s, %2$s wrote:</string>
     <string name="compose_forwarded_header">---------- Forwarded message ----------</string>
-    <string name="compose_forward_no_attachments">Attachments are not included when forwarding in this version.</string>
     <string name="setup_title">Add account</string>
     <string name="setup_use_preset">Use the approved settings for heba@shegrowsdev.com</string>
     <string name="setup_display_name">Display name</string>
@@ -76,7 +74,7 @@
     <string name="lang_english">English</string>
     <string name="settings_accounts">Accounts</string>
     <string name="settings_signature">Signature</string>
-    <string name="settings_signature_hint">The signature matching the app language is added to new messages. It is plain text, not a legally binding digital signature.</string>
+    <string name="settings_signature_hint">Added to the end of messages you send, in the language the app is using. It is a formatted text and image block, not a legally binding digital signature.</string>
     <string name="settings_signature_ar">Arabic signature</string>
     <string name="settings_signature_en">English signature</string>
     <string name="settings_notifications">New mail notifications</string>
@@ -100,5 +98,172 @@
     <string name="err_no_recipient">Add at least one recipient.</string>
     <string name="err_no_password">The saved password is unavailable. Remove the account and add it again.</string>
     <string name="err_account_not_found">The account was not found.</string>
+    <string name="action_open">Open</string>
+    <string name="action_save_to_device">Save</string>
+    <string name="action_archive">Archive</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_search">Search</string>
+    <string name="folder_archive">Archive</string>
+    <string name="message_attachments">Attachments</string>
+    <string name="message_archived">Message archived</string>
+    <string name="message_moved_to_trash">Moved to Trash</string>
+    <string name="message_deleted">Message deleted permanently</string>
+    <string name="message_delete_to_trash">Move this message to Trash?</string>
+    <string name="message_delete_permanent">This message will be deleted permanently and cannot be recovered.</string>
+    <string name="message_attachment_saved">Attachment saved</string>
+    <string name="compose_attach">Attach files</string>
+    <string name="compose_attach_hint" formatted="true">PDF, Word, Excel and images. Up to %1$s per file and %2$s in total; your mail server may allow less.</string>
+    <string name="compose_remove_attachment">Remove attachment</string>
+    <string name="compose_include_signature">Add signature when sending</string>
+    <string name="compose_signature_logo">Company logo included</string>
+    <string name="compose_attachments_skipped">Some attachments were not included (unsupported type, unreadable, or over the size limit):</string>
+    <string name="search_hint">Search subject, sender, recipient and text</string>
+    <string name="search_no_results">No messages found</string>
+    <string name="search_partial_notice">The server could not run this search. Only the 300 most recent messages were checked, by subject, sender and recipient (not the message text).</string>
+    <string name="view_options">Sort and view</string>
+    <string name="sort_newest">Newest first</string>
+    <string name="sort_oldest">Oldest first</string>
+    <string name="sort_unread_first">Unread first</string>
+    <string name="view_group_conversations">Group by conversation</string>
+    <string name="settings_sig_name">Name</string>
+    <string name="settings_sig_title">Job title</string>
+    <string name="settings_sig_contact">Contact details</string>
+    <string name="settings_logo">Company logo</string>
+    <string name="settings_logo_include">Include the logo in the signature</string>
+    <string name="settings_logo_none">No logo chosen. Pick the company logo image supplied by the company.</string>
+    <string name="settings_logo_choose">Choose logo</string>
+    <string name="settings_logo_remove">Remove logo</string>
+    <string name="err_message_too_large">The mail server refused the message because it is too large. Remove some attachments and try again.</string>
+    <string name="err_attach_type">This file type is not allowed. Only PDF, Word, Excel and image files can be attached:</string>
+    <string name="err_attach_content">The file content does not match its type, so it was not used:</string>
+    <string name="err_attach_too_large">The file is larger than the allowed size for one attachment:</string>
+    <string name="err_attach_total_too_large">Adding this file would exceed the total size allowed for attachments:</string>
+    <string name="err_attach_too_many">Too many attachments. The limit is 10 files per message.</string>
+    <string name="err_attach_read">The file could not be read or is empty:</string>
+    <string name="err_attach_download">The attachment could not be downloaded. Check your connection and try again.</string>
+    <string name="err_attach_not_found">The attachment was not found in the message.</string>
+    <string name="err_attach_save">The file could not be saved:</string>
+    <string name="err_no_app_to_open">No app on this device can open this file. You can save it instead.</string>
+    <string name="err_search_failed">The search could not be completed.</string>
     <string name="err_generic">Something went wrong.</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_close">Close</string>
+    <string name="action_create">Create</string>
+    <string name="action_next">Next</string>
+    <string name="action_ok">OK</string>
+    <string name="err_data">The administrative data could not be read or saved.</string>
+    <string name="err_not_permitted">You are not permitted to see or change this item.</string>
+    <string name="admin_actions">Tasks and register</string>
+    <string name="admin_make_task">Turn into a task</string>
+    <string name="admin_register">Register in official log</string>
+    <string name="admin_follow_up">Set a reply / follow-up reminder</string>
+    <string name="admin_open_message">Open the message</string>
+    <string name="admin_links_register" formatted="true">Log no. %1$s</string>
+    <string name="admin_links_tasks" formatted="true">%1$d task(s)</string>
+    <string name="admin_links_follow_ups" formatted="true">%1$d pending reminder(s)</string>
+    <string name="compose_register_in_log">Also enter this message in the official register</string>
+    <string name="tasks_title">Tasks</string>
+    <string name="tasks_empty">No tasks here.</string>
+    <string name="tasks_filter_open">Open</string>
+    <string name="tasks_filter_done">Completed</string>
+    <string name="tasks_filter_overdue">Overdue</string>
+    <string name="tasks_filter_all">All</string>
+    <string name="tasks_overdue_prefix">Overdue:</string>
+    <string name="task_create_title">New task</string>
+    <string name="task_detail_title">Task</string>
+    <string name="task_title">Title</string>
+    <string name="task_assignee">Responsible employee</string>
+    <string name="task_due">Due date</string>
+    <string name="task_due_none">No due date</string>
+    <string name="task_status">Status</string>
+    <string name="task_status_open">Open</string>
+    <string name="task_status_in_progress">In progress</string>
+    <string name="task_status_done">Completed</string>
+    <string name="task_saved">Saved</string>
+    <string name="task_linked_message">Linked message</string>
+    <string name="task_history">History</string>
+    <string name="task_event_created" formatted="true">Task created: %1$s</string>
+    <string name="task_event_title" formatted="true">Title changed from “%1$s” to “%2$s”</string>
+    <string name="task_event_assignee" formatted="true">Responsible changed from %1$s to %2$s</string>
+    <string name="task_event_due" formatted="true">Due date changed from %1$s to %2$s</string>
+    <string name="task_event_status" formatted="true">Status changed from %1$s to %2$s</string>
+    <string name="register_title">Incoming / outgoing register</string>
+    <string name="register_empty">No entries in the register.</string>
+    <string name="register_all">All</string>
+    <string name="register_incoming">Incoming</string>
+    <string name="register_outgoing">Outgoing</string>
+    <string name="register_search_hint">Search number, subject, party or responsible</string>
+    <string name="register_party">Party</string>
+    <string name="register_responsible">Responsible</string>
+    <string name="register_mailbox">Mailbox</string>
+    <string name="register_related_tasks">Related tasks</string>
+    <string name="register_no_tasks">No related tasks</string>
+    <string name="register_attachments_count" formatted="true">%1$d attachment(s)</string>
+    <string name="register_tasks_count" formatted="true">%1$d task(s)</string>
+    <string name="register_done">Entered in the register</string>
+    <string name="followups_title">Follow-ups</string>
+    <string name="followups_empty">Nothing to follow up.</string>
+    <string name="followups_overdue">Overdue</string>
+    <string name="followups_upcoming">Upcoming</string>
+    <string name="followups_closed">Closed</string>
+    <string name="followup_create_title">Reminder to reply / follow up</string>
+    <string name="followup_due">Remind me on</string>
+    <string name="followup_note">Note (optional)</string>
+    <string name="followup_saved">Reminder set</string>
+    <string name="followup_done">Done</string>
+    <string name="followup_reschedule">Change time</string>
+    <string name="followup_dismiss">Cancel</string>
+    <string name="followup_state_done">done</string>
+    <string name="followup_state_cancelled">cancelled</string>
+    <string name="notif_followup_channel_name">Reminders</string>
+    <string name="notif_followup_channel_desc">Reminders to reply to or follow up on messages</string>
+    <string name="notif_followup_title">Follow-up reminder</string>
+    <string name="notif_followup_approaching" formatted="true">%1$d follow-up(s) coming due</string>
+    <string name="notif_followup_overdue" formatted="true">%1$d follow-up(s) overdue</string>
+    <string name="settings_reminders">Follow-up reminders</string>
+    <string name="settings_reminders_enable">Remind me about follow-ups</string>
+    <string name="settings_reminders_desc">Checked about every 15 minutes, together with new mail, for accounts that have notifications on. Each reminder is shown once when it approaches and once when it is overdue.</string>
+    <string name="settings_reminders_lead">Warn me before the due time</string>
+    <string name="settings_lead_minutes" formatted="true">%1$d minutes</string>
+    <string name="settings_lead_hours" formatted="true">%1$d hour(s)</string>
+    <string name="settings_lead_days" formatted="true">%1$d day(s)</string>
+    <string name="settings_role_admin">Administrator</string>
+    <string name="settings_role_desc">An administrator sees the tasks, register and statistics of every account on this device; an employee only their own.</string>
+    <string name="settings_role_locked">Only an administrator can change roles.</string>
+    <string name="unified_title">Unified inbox</string>
+    <string name="unified_scope_admin">Latest inbox messages of all accounts on this device (administrator view).</string>
+    <string name="unified_scope_employee">Latest inbox messages of your own account.</string>
+    <string name="unified_failed" formatted="true">Could not read: %1$s</string>
+    <string name="dash_title">Management dashboard</string>
+    <string name="dash_no_account">Add an account first.</string>
+    <string name="dash_scope_admin">Administrator view: you can see all accounts on this device.</string>
+    <string name="dash_scope_employee">Your own account only.</string>
+    <string name="dash_all_accounts">All accounts</string>
+    <string name="dash_period_today">Today</string>
+    <string name="dash_period_7">Last 7 days</string>
+    <string name="dash_period_30">Last 30 days</string>
+    <string name="dash_period_this_month">This month</string>
+    <string name="dash_period_last_month">Last month</string>
+    <string name="dash_period_custom">Custom</string>
+    <string name="dash_period_range" formatted="true">Period: %1$s to %2$s</string>
+    <string name="dash_unavailable">Unavailable</string>
+    <string name="dash_partial" formatted="true">These accounts could not be read and are left out of the message counts: %1$s</string>
+    <string name="dash_incoming">Incoming messages</string>
+    <string name="dash_incoming_note">Messages received in the period that are still in the Inbox folder.</string>
+    <string name="dash_outgoing">Outgoing messages</string>
+    <string name="dash_outgoing_note">Messages sent in the period that are in the Sent folder.</string>
+    <string name="dash_open_tx">Open transactions</string>
+    <string name="dash_tx_note">As of now, not limited to the period: conversations with an unfinished task or pending reminder.</string>
+    <string name="dash_overdue_tx">Overdue transactions</string>
+    <string name="dash_overdue_note">As of now: open transactions whose task or reminder has a due time that has passed.</string>
+    <string name="dash_response">Average response time</string>
+    <string name="dash_response_all">All</string>
+    <string name="dash_response_external">External senders</string>
+    <string name="dash_response_internal">Company senders</string>
+    <string name="dash_no_replies">No replies yet</string>
+    <string name="dash_response_note">Only incoming messages in the period that have a recorded reply are counted; the number in brackets is how many.</string>
+    <string name="dash_duration_dhm" formatted="true">%1$d d %2$d h %3$d min</string>
+    <string name="dash_duration_hm" formatted="true">%1$d h %2$d min</string>
+    <string name="dash_duration_m" formatted="true">%1$d min</string>
+    <string name="dash_definitions">How it is counted: a message is one e-mail; a transaction is a conversation. Response time runs from receiving a message to the first reply sent from the same account in the same conversation (a reply that answers it directly takes priority). Only messages and replies handled through this app are known to it, so a reply written elsewhere is not counted. Message counts come from the mail server by calendar day. Nothing on this page is sample data.</string>
 </resources>

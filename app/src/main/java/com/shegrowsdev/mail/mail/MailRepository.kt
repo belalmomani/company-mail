@@ -5,6 +5,7 @@ import com.shegrowsdev.mail.data.AccountStore
 import com.sun.mail.imap.IMAPFolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.Date
 import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
@@ -13,12 +14,23 @@ import javax.mail.FetchProfile
 import javax.mail.Flags
 import javax.mail.Folder
 import javax.mail.Message
+import javax.mail.MessagingException
 import javax.mail.Session
 import javax.mail.Store
 import javax.mail.UIDFolder
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
+import javax.mail.search.AndTerm
+import javax.mail.search.BodyTerm
+import javax.mail.search.ComparisonTerm
+import javax.mail.search.FromStringTerm
 import javax.mail.search.HeaderTerm
+import javax.mail.search.OrTerm
+import javax.mail.search.ReceivedDateTerm
+import javax.mail.search.RecipientStringTerm
+import javax.mail.search.SearchTerm
+import javax.mail.search.SentDateTerm
+import javax.mail.search.SubjectTerm
 
 /**
  * Real IMAP/SMTP access. Every operation opens its own connection and closes it afterwards.
@@ -129,7 +141,10 @@ class MailRepository(private val store: AccountStore) {
         page: Int,
         pageSize: Int = PAGE_SIZE,
     ): MessagePage {
-        val path = folderPath(accountId, role)
+        // Archive and Trash may legitimately not exist yet (Archive is created on first use).
+        val path = folderPathOrNull(accountId, role)
+            ?: if (role == FolderRole.ARCHIVE || role == FolderRole.TRASH) return MessagePage(emptyList(), false)
+            else throw MailFailure(FailureKind.FOLDER_NOT_FOUND)
         return withContext(Dispatchers.IO) {
             val (account, password) = credentials(accountId)
             imap(account, password) { s ->
@@ -186,7 +201,7 @@ class MailRepository(private val store: AccountStore) {
                         dateMillis = (msg.sentDate ?: msg.receivedDate)?.time,
                         bodyText = content.text,
                         bodyFromHtml = content.fromHtml,
-                        hasAttachments = content.hasAttachments,
+                        attachments = content.attachments,
                     )
                     if (markSeen && !msg.isSet(Flags.Flag.SEEN)) {
                         runCatching { msg.setFlag(Flags.Flag.SEEN, true) }
@@ -309,7 +324,7 @@ class MailRepository(private val store: AccountStore) {
         msg.sentDate = Date()
         out.inReplyTo?.let { msg.setHeader("In-Reply-To", it) }
         out.references?.let { msg.setHeader("References", it) }
-        msg.setText(out.body, "UTF-8")
+        MimeBuilder.fillContent(msg, out)
         msg.saveChanges()
         return msg
     }
@@ -372,6 +387,252 @@ class MailRepository(private val store: AccountStore) {
         return found.toList()
     }
 
+    // ---------------------------------------------------------------- attachments (receiving)
+
+    /**
+     * Downloads one attachment of a received message into [dest] (written to a temporary file first,
+     * so a failed or interrupted download never leaves a partial file under the final name).
+     */
+    suspend fun downloadAttachment(
+        accountId: String,
+        role: FolderRole,
+        uid: Long,
+        index: Int,
+        dest: File,
+    ) {
+        val path = folderPath(accountId, role)
+        withContext(Dispatchers.IO) {
+            val (account, password) = credentials(accountId)
+            imap(account, password) { s ->
+                val folder = s.getFolder(path) as IMAPFolder
+                folder.open(Folder.READ_ONLY)
+                val tmp = File(dest.parentFile, dest.name + ".part")
+                try {
+                    val msg = folder.getMessageByUID(uid) ?: throw MailFailure(FailureKind.MESSAGE_NOT_FOUND)
+                    val part = MessageContent.attachmentParts(msg).getOrNull(index)
+                        ?: throw MailFailure(FailureKind.ATTACH_NOT_FOUND)
+                    dest.parentFile?.mkdirs()
+                    var total = 0L
+                    part.inputStream.use { input ->
+                        tmp.outputStream().use { output ->
+                            val buffer = ByteArray(16 * 1024)
+                            while (true) {
+                                val n = input.read(buffer)
+                                if (n < 0) break
+                                total += n
+                                if (total > MAX_DOWNLOAD_BYTES) throw MailFailure(FailureKind.ATTACH_DOWNLOAD)
+                                output.write(buffer, 0, n)
+                            }
+                        }
+                    }
+                    if (dest.exists()) dest.delete()
+                    if (!tmp.renameTo(dest)) throw MailFailure(FailureKind.ATTACH_DOWNLOAD)
+                } catch (e: Exception) {
+                    tmp.delete()
+                    val failure = e.toMailFailure(Protocol.IMAP)
+                    throw if (failure.kind == FailureKind.UNKNOWN) MailFailure(FailureKind.ATTACH_DOWNLOAD, cause = e) else failure
+                } finally {
+                    runCatching { folder.close(false) }
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- search
+
+    /**
+     * Searches one folder. The server searches subject, sender, recipient and body. If the server
+     * cannot run the search (for example it rejects a non-Latin search string), the newest
+     * [FALLBACK_SCAN] messages are filtered on this device by subject, sender and recipients only;
+     * [SearchResult.partialScan] tells the UI so it can say so.
+     */
+    suspend fun search(
+        accountId: String,
+        role: FolderRole,
+        query: String,
+        limit: Int = SEARCH_LIMIT,
+    ): SearchResult {
+        val q = query.trim()
+        if (q.isEmpty()) return SearchResult(emptyList(), false)
+        val path = folderPathOrNull(accountId, role) ?: return SearchResult(emptyList(), false)
+        return withContext(Dispatchers.IO) {
+            val (account, password) = credentials(accountId)
+            imap(account, password) { s ->
+                val folder = s.getFolder(path) as IMAPFolder
+                folder.open(Folder.READ_ONLY)
+                try {
+                    val serverHits: Array<Message>? = try {
+                        folder.search(
+                            OrTerm(
+                                arrayOf<SearchTerm>(
+                                    SubjectTerm(q),
+                                    FromStringTerm(q),
+                                    RecipientStringTerm(Message.RecipientType.TO, q),
+                                    BodyTerm(q),
+                                )
+                            )
+                        )
+                    } catch (e: MessagingException) {
+                        null
+                    }
+
+                    if (serverHits != null) {
+                        val newest = serverHits.takeLast(limit).toTypedArray()
+                        folder.fetch(newest, envelopeProfile())
+                        val items = newest.reversed()
+                            .filterNot { it.isSet(Flags.Flag.DELETED) }
+                            .map { summarize(folder, it) }
+                        SearchResult(items, partialScan = false)
+                    } else {
+                        val total = folder.messageCount
+                        if (total < 1) {
+                            SearchResult(emptyList(), partialScan = true)
+                        } else {
+                            val start = maxOf(1, total - FALLBACK_SCAN + 1)
+                            val messages = folder.getMessages(start, total)
+                            folder.fetch(messages, envelopeProfile())
+                            val items = messages.reversed()
+                                .filterNot { it.isSet(Flags.Flag.DELETED) }
+                                .map { summarize(folder, it) }
+                                .filter { SearchMatch.matches(it, q) }
+                                .take(limit)
+                            SearchResult(items, partialScan = true)
+                        }
+                    }
+                } finally {
+                    runCatching { folder.close(false) }
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- delete / archive
+
+    /** True when the account has a folder with this role on the server. */
+    suspend fun hasFolder(accountId: String, role: FolderRole): Boolean =
+        folderPathOrNull(accountId, role) != null
+
+    /**
+     * Moves the message to Trash; permanently deletes it when it is already in Trash or the
+     * account has no Trash folder. The copy to Trash is made before anything is removed.
+     */
+    suspend fun delete(accountId: String, role: FolderRole, uid: Long): DeleteOutcome {
+        val src = folderPath(accountId, role)
+        val trash = if (role == FolderRole.TRASH) null else folderPathOrNull(accountId, FolderRole.TRASH)
+        withContext(Dispatchers.IO) {
+            val (account, password) = credentials(accountId)
+            imap(account, password) { s -> moveOrExpunge(s, src, uid, trash) }
+        }
+        return if (trash != null) DeleteOutcome.MOVED_TO_TRASH else DeleteOutcome.DELETED_PERMANENTLY
+    }
+
+    /** Moves the message to the Archive folder, creating "Archive" on the server if it does not exist. */
+    suspend fun archive(accountId: String, role: FolderRole, uid: Long) {
+        val src = folderPath(accountId, role)
+        val existing = folderPathOrNull(accountId, FolderRole.ARCHIVE)
+        val target = existing ?: FolderRoles.siblingPath(folders(accountId).map { it.path }, ARCHIVE_NAME)
+        withContext(Dispatchers.IO) {
+            val (account, password) = credentials(accountId)
+            imap(account, password) { s ->
+                if (existing == null) {
+                    val f = s.getFolder(target)
+                    if (!f.exists()) f.create(Folder.HOLDS_MESSAGES)
+                    runCatching { f.isSubscribed = true }
+                }
+                moveOrExpunge(s, src, uid, target)
+            }
+        }
+        if (existing == null) folderCache.remove(accountId)
+    }
+
+    private fun moveOrExpunge(s: Store, srcPath: String, uid: Long, destPath: String?) {
+        val folder = s.getFolder(srcPath) as IMAPFolder
+        folder.open(Folder.READ_WRITE)
+        try {
+            val msg = folder.getMessageByUID(uid) ?: throw MailFailure(FailureKind.MESSAGE_NOT_FOUND)
+            if (destPath != null) {
+                // Copy first: if this fails the original is untouched.
+                folder.copyMessages(arrayOf(msg), s.getFolder(destPath))
+            }
+            msg.setFlag(Flags.Flag.DELETED, true)
+            try {
+                folder.expunge(arrayOf(msg)) // UIDPLUS: only this message
+            } catch (e: MessagingException) {
+                folder.expunge()
+            }
+        } finally {
+            runCatching { folder.close(false) }
+        }
+    }
+
+
+    // ---------------------------------------------------------------- locate / statistics
+
+    /**
+     * Finds a message again after it may have moved (archive, trash). The stored folder/UID is checked
+     * first (and must still carry the same Message-ID); otherwise the standard folders are searched by
+     * Message-ID. Returns the folder role and UID to open, or throws MESSAGE_NOT_FOUND.
+     */
+    suspend fun locate(accountId: String, messageId: String?, role: FolderRole, uid: Long): Pair<FolderRole, Long> {
+        val candidates = listOf(role) + listOf(
+            FolderRole.INBOX, FolderRole.SENT, FolderRole.ARCHIVE, FolderRole.DRAFTS, FolderRole.SPAM, FolderRole.TRASH
+        ).filter { it != role }
+        val paths = candidates.mapNotNull { r -> folderPathOrNull(accountId, r)?.let { r to it } }
+        return withContext(Dispatchers.IO) {
+            val (account, password) = credentials(accountId)
+            imap(account, password) { s ->
+                for ((r, path) in paths) {
+                    val folder = s.getFolder(path) as IMAPFolder
+                    folder.open(Folder.READ_ONLY)
+                    try {
+                        if (r == role && uid >= 0) {
+                            val m = folder.getMessageByUID(uid)
+                            if (m != null && (messageId == null ||
+                                    header(m as MimeMessage, "Message-ID")?.lowercase() == messageId.lowercase())
+                            ) return@imap r to uid
+                        }
+                        if (messageId != null) {
+                            val hits = folder.search(HeaderTerm("Message-ID", messageId))
+                                .filter { it is MimeMessage && header(it, "Message-ID")?.lowercase() == messageId.lowercase() }
+                            hits.firstOrNull()?.let { return@imap r to folder.getUID(it) }
+                        }
+                    } finally {
+                        runCatching { folder.close(false) }
+                    }
+                }
+                throw MailFailure(FailureKind.MESSAGE_NOT_FOUND)
+            }
+        }
+    }
+
+    /**
+     * Number of messages in a folder inside a period (whole days; the server compares days in its own
+     * time zone). Inbox/Archive use the received date, Sent the sent date. A folder that does not exist
+     * on the server counts as 0.
+     */
+    suspend fun countInPeriod(accountId: String, role: FolderRole, fromMillis: Long, toExclusiveMillis: Long): Int {
+        val path = folderPathOrNull(accountId, role) ?: return 0
+        return withContext(Dispatchers.IO) {
+            val (account, password) = credentials(accountId)
+            imap(account, password) { s ->
+                val folder = s.getFolder(path) as IMAPFolder
+                folder.open(Folder.READ_ONLY)
+                try {
+                    val from = Date(fromMillis)
+                    val to = Date(toExclusiveMillis)
+                    val term: SearchTerm = if (role == FolderRole.SENT) {
+                        AndTerm(SentDateTerm(ComparisonTerm.GE, from), SentDateTerm(ComparisonTerm.LT, to))
+                    } else {
+                        AndTerm(ReceivedDateTerm(ComparisonTerm.GE, from), ReceivedDateTerm(ComparisonTerm.LT, to))
+                    }
+                    folder.search(term).count { !it.isSet(Flags.Flag.DELETED) }
+                } finally {
+                    runCatching { folder.close(false) }
+                }
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- new mail check (notifications)
 
     /**
@@ -413,5 +674,9 @@ class MailRepository(private val store: AccountStore) {
 
     companion object {
         const val PAGE_SIZE = 30
+        const val SEARCH_LIMIT = 100
+        const val FALLBACK_SCAN = 300
+        const val ARCHIVE_NAME = "Archive"
+        private const val MAX_DOWNLOAD_BYTES = 60L * 1024 * 1024
     }
 }

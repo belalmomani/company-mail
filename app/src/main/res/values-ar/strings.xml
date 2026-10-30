@@ -31,7 +31,6 @@
     <string name="message_forward">إعادة توجيه</string>
     <string name="message_truncated">الرسالة طويلة، ويُعرض الجزء الأول منها فقط.</string>
     <string name="message_html_notice">هذه الرسالة منسّقة، وتُعرض هنا كنص عادي.</string>
-    <string name="message_attachments_notice">تحتوي هذه الرسالة على مرفقات. عرض المرفقات غير متاح في هذا الإصدار.</string>
     <string name="compose_title_new">رسالة جديدة</string>
     <string name="compose_to">إلى</string>
     <string name="compose_cc">نسخة (CC)</string>
@@ -51,7 +50,6 @@
     <string name="compose_keep_editing">متابعة التحرير</string>
     <string name="compose_wrote" formatted="true">في %1$s، كتب %2$s:</string>
     <string name="compose_forwarded_header">---------- رسالة معاد توجيهها ----------</string>
-    <string name="compose_forward_no_attachments">لا تُضمَّن المرفقات عند إعادة التوجيه في هذا الإصدار.</string>
     <string name="setup_title">إضافة حساب</string>
     <string name="setup_use_preset">استخدام الإعدادات المعتمدة للحساب heba@shegrowsdev.com</string>
     <string name="setup_display_name">الاسم الظاهر</string>
@@ -76,7 +74,7 @@
     <string name="lang_english">English</string>
     <string name="settings_accounts">الحسابات</string>
     <string name="settings_signature">التوقيع</string>
-    <string name="settings_signature_hint">يُضاف التوقيع المطابق للغة التطبيق إلى الرسائل الجديدة. وهو توقيع نصي وليس توقيعًا رقميًا معتمدًا قانونيًا.</string>
+    <string name="settings_signature_hint">يُضاف في نهاية الرسائل التي ترسلها، بلغة التطبيق الحالية. وهو نص منسّق وصورة وليس توقيعًا رقميًا معتمدًا قانونيًا.</string>
     <string name="settings_signature_ar">التوقيع بالعربية</string>
     <string name="settings_signature_en">التوقيع بالإنجليزية</string>
     <string name="settings_notifications">إشعارات البريد الجديد</string>
@@ -100,5 +98,172 @@
     <string name="err_no_recipient">أضف مستلمًا واحدًا على الأقل.</string>
     <string name="err_no_password">كلمة المرور المحفوظة غير متاحة. أزل الحساب وأضفه من جديد.</string>
     <string name="err_account_not_found">لم يُعثر على الحساب.</string>
+    <string name="action_open">فتح</string>
+    <string name="action_save_to_device">حفظ</string>
+    <string name="action_archive">أرشفة</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_search">بحث</string>
+    <string name="folder_archive">الأرشيف</string>
+    <string name="message_attachments">المرفقات</string>
+    <string name="message_archived">تمت أرشفة الرسالة</string>
+    <string name="message_moved_to_trash">نُقلت الرسالة إلى المحذوفات</string>
+    <string name="message_deleted">تم حذف الرسالة نهائيًا</string>
+    <string name="message_delete_to_trash">نقل هذه الرسالة إلى المحذوفات؟</string>
+    <string name="message_delete_permanent">ستُحذف هذه الرسالة نهائيًا ولا يمكن استرجاعها.</string>
+    <string name="message_attachment_saved">تم حفظ المرفق</string>
+    <string name="compose_attach">إرفاق ملفات</string>
+    <string name="compose_attach_hint" formatted="true">PDF وWord وExcel والصور. حتى %1$s للملف الواحد و%2$s في المجموع، وقد يسمح خادم البريد بحجم أقل.</string>
+    <string name="compose_remove_attachment">إزالة المرفق</string>
+    <string name="compose_include_signature">إضافة التوقيع عند الإرسال</string>
+    <string name="compose_signature_logo">مع شعار الشركة</string>
+    <string name="compose_attachments_skipped">لم تُضمَّن بعض المرفقات (نوع غير مدعوم أو تعذّرت قراءتها أو تجاوزت الحد):</string>
+    <string name="search_hint">ابحث في الموضوع والمرسل والمستلم والنص</string>
+    <string name="search_no_results">لم يُعثر على رسائل</string>
+    <string name="search_partial_notice">تعذّر على الخادم تنفيذ هذا البحث. فُحصت أحدث 300 رسالة فقط، حسب الموضوع والمرسل والمستلم (دون نص الرسالة).</string>
+    <string name="view_options">الترتيب والعرض</string>
+    <string name="sort_newest">الأحدث أولًا</string>
+    <string name="sort_oldest">الأقدم أولًا</string>
+    <string name="sort_unread_first">غير المقروءة أولًا</string>
+    <string name="view_group_conversations">تجميع حسب المحادثة</string>
+    <string name="settings_sig_name">الاسم</string>
+    <string name="settings_sig_title">المسمى الوظيفي</string>
+    <string name="settings_sig_contact">بيانات التواصل</string>
+    <string name="settings_logo">شعار الشركة</string>
+    <string name="settings_logo_include">إدراج الشعار في التوقيع</string>
+    <string name="settings_logo_none">لم يتم اختيار شعار. اختر صورة شعار الشركة التي توفرها الشركة.</string>
+    <string name="settings_logo_choose">اختيار الشعار</string>
+    <string name="settings_logo_remove">إزالة الشعار</string>
+    <string name="err_message_too_large">رفض خادم البريد الرسالة لأن حجمها كبير. أزل بعض المرفقات وحاول مرة أخرى.</string>
+    <string name="err_attach_type">نوع الملف غير مسموح. يمكن إرفاق ملفات PDF وWord وExcel والصور فقط:</string>
+    <string name="err_attach_content">محتوى الملف لا يطابق نوعه، لذلك لم يُستخدم:</string>
+    <string name="err_attach_too_large">حجم الملف أكبر من الحد المسموح للمرفق الواحد:</string>
+    <string name="err_attach_total_too_large">إضافة هذا الملف تتجاوز الحجم الإجمالي المسموح للمرفقات:</string>
+    <string name="err_attach_too_many">عدد المرفقات كبير. الحد الأقصى 10 ملفات في الرسالة.</string>
+    <string name="err_attach_read">تعذّرت قراءة الملف أو أنه فارغ:</string>
+    <string name="err_attach_download">تعذّر تنزيل المرفق. تحقق من اتصالك وحاول مرة أخرى.</string>
+    <string name="err_attach_not_found">لم يُعثر على المرفق في الرسالة.</string>
+    <string name="err_attach_save">تعذّر حفظ الملف:</string>
+    <string name="err_no_app_to_open">لا يوجد تطبيق على هذا الجهاز يستطيع فتح هذا الملف. يمكنك حفظه بدلًا من ذلك.</string>
+    <string name="err_search_failed">تعذّر إكمال البحث.</string>
     <string name="err_generic">حدث خطأ غير متوقع.</string>
+    <string name="action_clear">مسح</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_create">إنشاء</string>
+    <string name="action_next">التالي</string>
+    <string name="action_ok">موافق</string>
+    <string name="err_data">تعذّر قراءة البيانات الإدارية أو حفظها.</string>
+    <string name="err_not_permitted">ليست لديك صلاحية لعرض هذا العنصر أو تعديله.</string>
+    <string name="admin_actions">المهام والسجل</string>
+    <string name="admin_make_task">تحويل إلى مهمة</string>
+    <string name="admin_register">تسجيل في سجل الصادر والوارد</string>
+    <string name="admin_follow_up">تحديد تذكير بالرد أو المتابعة</string>
+    <string name="admin_open_message">فتح الرسالة</string>
+    <string name="admin_links_register" formatted="true">رقم السجل %1$s</string>
+    <string name="admin_links_tasks" formatted="true">%1$d مهمة</string>
+    <string name="admin_links_follow_ups" formatted="true">%1$d تذكير قائم</string>
+    <string name="compose_register_in_log">تسجيل هذه الرسالة أيضًا في سجل الصادر والوارد</string>
+    <string name="tasks_title">المهام</string>
+    <string name="tasks_empty">لا توجد مهام هنا.</string>
+    <string name="tasks_filter_open">المفتوحة</string>
+    <string name="tasks_filter_done">المكتملة</string>
+    <string name="tasks_filter_overdue">المتأخرة</string>
+    <string name="tasks_filter_all">الكل</string>
+    <string name="tasks_overdue_prefix">متأخرة:</string>
+    <string name="task_create_title">مهمة جديدة</string>
+    <string name="task_detail_title">المهمة</string>
+    <string name="task_title">العنوان</string>
+    <string name="task_assignee">الموظف المسؤول</string>
+    <string name="task_due">تاريخ الاستحقاق</string>
+    <string name="task_due_none">بدون تاريخ استحقاق</string>
+    <string name="task_status">الحالة</string>
+    <string name="task_status_open">مفتوحة</string>
+    <string name="task_status_in_progress">قيد التنفيذ</string>
+    <string name="task_status_done">مكتملة</string>
+    <string name="task_saved">تم الحفظ</string>
+    <string name="task_linked_message">الرسالة المرتبطة</string>
+    <string name="task_history">السجل</string>
+    <string name="task_event_created" formatted="true">أُنشئت المهمة: %1$s</string>
+    <string name="task_event_title" formatted="true">تغيّر العنوان من “%1$s” إلى “%2$s”</string>
+    <string name="task_event_assignee" formatted="true">تغيّر المسؤول من %1$s إلى %2$s</string>
+    <string name="task_event_due" formatted="true">تغيّر تاريخ الاستحقاق من %1$s إلى %2$s</string>
+    <string name="task_event_status" formatted="true">تغيّرت الحالة من %1$s إلى %2$s</string>
+    <string name="register_title">سجل الصادر والوارد</string>
+    <string name="register_empty">لا توجد قيود في السجل.</string>
+    <string name="register_all">الكل</string>
+    <string name="register_incoming">وارد</string>
+    <string name="register_outgoing">صادر</string>
+    <string name="register_search_hint">ابحث بالرقم أو الموضوع أو الجهة أو المسؤول</string>
+    <string name="register_party">الجهة</string>
+    <string name="register_responsible">المسؤول</string>
+    <string name="register_mailbox">صندوق البريد</string>
+    <string name="register_related_tasks">المهام ذات الصلة</string>
+    <string name="register_no_tasks">لا توجد مهام ذات صلة</string>
+    <string name="register_attachments_count" formatted="true">%1$d مرفق</string>
+    <string name="register_tasks_count" formatted="true">%1$d مهمة</string>
+    <string name="register_done">تم التسجيل في السجل</string>
+    <string name="followups_title">المتابعات</string>
+    <string name="followups_empty">لا توجد متابعات.</string>
+    <string name="followups_overdue">متأخرة</string>
+    <string name="followups_upcoming">قادمة</string>
+    <string name="followups_closed">المغلقة</string>
+    <string name="followup_create_title">تذكير بالرد أو المتابعة</string>
+    <string name="followup_due">ذكّرني في</string>
+    <string name="followup_note">ملاحظة (اختيارية)</string>
+    <string name="followup_saved">تم ضبط التذكير</string>
+    <string name="followup_done">تم</string>
+    <string name="followup_reschedule">تغيير الموعد</string>
+    <string name="followup_dismiss">إلغاء التذكير</string>
+    <string name="followup_state_done">منجزة</string>
+    <string name="followup_state_cancelled">ملغاة</string>
+    <string name="notif_followup_channel_name">التذكيرات</string>
+    <string name="notif_followup_channel_desc">تذكيرات بالرد على الرسائل أو متابعتها</string>
+    <string name="notif_followup_title">تذكير بالمتابعة</string>
+    <string name="notif_followup_approaching" formatted="true">%1$d متابعة يقترب موعدها</string>
+    <string name="notif_followup_overdue" formatted="true">%1$d متابعة تجاوزت موعدها</string>
+    <string name="settings_reminders">تذكيرات المتابعة</string>
+    <string name="settings_reminders_enable">تذكيري بالمتابعات</string>
+    <string name="settings_reminders_desc">تُفحص كل 15 دقيقة تقريبًا مع البريد الجديد للحسابات التي تكون إشعاراتها مفعّلة. يظهر كل تذكير مرة عند اقتراب موعده ومرة عند تجاوزه.</string>
+    <string name="settings_reminders_lead">التنبيه قبل الموعد بـ</string>
+    <string name="settings_lead_minutes" formatted="true">%1$d دقيقة</string>
+    <string name="settings_lead_hours" formatted="true">%1$d ساعة</string>
+    <string name="settings_lead_days" formatted="true">%1$d يوم</string>
+    <string name="settings_role_admin">مدير</string>
+    <string name="settings_role_desc">يرى المدير مهام وسجل وإحصائيات جميع الحسابات على هذا الجهاز، ويرى الموظف بياناته فقط.</string>
+    <string name="settings_role_locked">المدير وحده يستطيع تغيير الأدوار.</string>
+    <string name="unified_title">الصندوق الموحّد</string>
+    <string name="unified_scope_admin">أحدث رسائل الوارد لجميع الحسابات على هذا الجهاز (عرض المدير).</string>
+    <string name="unified_scope_employee">أحدث رسائل الوارد لحسابك فقط.</string>
+    <string name="unified_failed" formatted="true">تعذّرت قراءة: %1$s</string>
+    <string name="dash_title">لوحة المتابعة الإدارية</string>
+    <string name="dash_no_account">أضف حسابًا أولًا.</string>
+    <string name="dash_scope_admin">عرض المدير: يمكنك رؤية جميع الحسابات على هذا الجهاز.</string>
+    <string name="dash_scope_employee">حسابك فقط.</string>
+    <string name="dash_all_accounts">جميع الحسابات</string>
+    <string name="dash_period_today">اليوم</string>
+    <string name="dash_period_7">آخر 7 أيام</string>
+    <string name="dash_period_30">آخر 30 يومًا</string>
+    <string name="dash_period_this_month">هذا الشهر</string>
+    <string name="dash_period_last_month">الشهر الماضي</string>
+    <string name="dash_period_custom">فترة مخصصة</string>
+    <string name="dash_period_range" formatted="true">الفترة: من %1$s إلى %2$s</string>
+    <string name="dash_unavailable">غير متاح</string>
+    <string name="dash_partial" formatted="true">تعذّرت قراءة هذه الحسابات وهي مستثناة من عدّ الرسائل: %1$s</string>
+    <string name="dash_incoming">الرسائل الواردة</string>
+    <string name="dash_incoming_note">الرسائل المستلمة خلال الفترة والموجودة حاليًا في مجلد الوارد.</string>
+    <string name="dash_outgoing">الرسائل الصادرة</string>
+    <string name="dash_outgoing_note">الرسائل المرسلة خلال الفترة والموجودة في مجلد المرسلة.</string>
+    <string name="dash_open_tx">المعاملات المفتوحة</string>
+    <string name="dash_tx_note">حتى الآن ولا تتقيد بالفترة: محادثات فيها مهمة غير مكتملة أو تذكير قائم.</string>
+    <string name="dash_overdue_tx">المعاملات المتأخرة</string>
+    <string name="dash_overdue_note">حتى الآن: معاملات مفتوحة تجاوزت مهمتها أو تذكيرها موعدًا محددًا.</string>
+    <string name="dash_response">متوسط وقت الرد</string>
+    <string name="dash_response_all">الكل</string>
+    <string name="dash_response_external">مرسلون خارجيون</string>
+    <string name="dash_response_internal">مرسلون من الشركة</string>
+    <string name="dash_no_replies">لا ردود بعد</string>
+    <string name="dash_response_note">تُحتسب فقط الرسائل الواردة خلال الفترة التي لها رد مسجّل؛ والرقم بين القوسين هو عددها.</string>
+    <string name="dash_duration_dhm" formatted="true">%1$d يوم %2$d ساعة %3$d دقيقة</string>
+    <string name="dash_duration_hm" formatted="true">%1$d ساعة %2$d دقيقة</string>
+    <string name="dash_duration_m" formatted="true">%1$d دقيقة</string>
+    <string name="dash_definitions">طريقة الاحتساب: الرسالة هي بريد إلكتروني واحد، والمعاملة هي محادثة. يُحسب وقت الرد من استلام الرسالة حتى أول رد يُرسَل من الحساب نفسه في المحادثة نفسها (ويُقدَّم الرد المباشر عليها). لا يعرف التطبيق إلا الرسائل والردود التي مرّت عبره، فلا يُحتسب رد كُتب من مكان آخر. أعداد الرسائل مأخوذة من خادم البريد بحسب اليوم التقويمي. لا توجد في هذه الصفحة أي بيانات تجريبية.</string>
 </resources>
