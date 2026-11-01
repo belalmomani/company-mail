@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,10 +46,12 @@ import com.shegrowsdev.mail.R
 import com.shegrowsdev.mail.ui.common.BrandLogo
 import com.shegrowsdev.mail.data.Account
 import com.shegrowsdev.mail.data.ApprovedPreset
+import com.shegrowsdev.mail.data.CompanyDirectory
 import com.shegrowsdev.mail.ui.common.Notice
 import com.shegrowsdev.mail.ui.common.attempt
 import com.shegrowsdev.mail.ui.common.containerViewModel
 import com.shegrowsdev.mail.ui.common.toNotice
+import com.shegrowsdev.mail.ui.common.ltr
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -69,6 +72,10 @@ class AccountSetupViewModel(private val container: AppContainer) : ViewModel() {
         val testing: Boolean = false,
         val notice: Notice? = null,
         val done: Boolean = false,
+        /** One of the company accounts was chosen from the list: only the password is needed. */
+        val companyPicked: Boolean = false,
+        /** The full manual form (another e-mail provider). */
+        val manual: Boolean = false,
     )
 
     private val _state = MutableStateFlow(UiState())
@@ -78,7 +85,33 @@ class AccountSetupViewModel(private val container: AppContainer) : ViewModel() {
         _state.update { transform(it).copy(notice = null) }
     }
 
-    /** Fills the settings given in the project specification for the approved test account only. */
+    /** A company account chosen from the list: address, name and server settings are filled in, nothing else to type. */
+    fun pickCompanyAccount(email: String) {
+        _state.update {
+            it.copy(
+                email = email,
+                displayName = CompanyDirectory.nameOf(email),
+                password = "",
+                imapHost = ApprovedPreset.IMAP_HOST,
+                imapPort = ApprovedPreset.IMAP_PORT.toString(),
+                smtpHost = ApprovedPreset.SMTP_HOST,
+                smtpPort = ApprovedPreset.SMTP_PORT.toString(),
+                companyPicked = true,
+                manual = false,
+                notice = null,
+            )
+        }
+    }
+
+    fun backToList() {
+        _state.update { UiState() }
+    }
+
+    fun chooseManual() {
+        _state.update { UiState(manual = true) }
+    }
+
+    /** Fills the company server settings into the manual form. */
     fun applyApprovedPreset() {
         _state.update {
             it.copy(
@@ -175,12 +208,43 @@ fun AccountSetupScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             BrandLogo(height = 140.dp)
-            OutlinedButton(
-                onClick = vm::applyApprovedPreset,
-                enabled = !state.testing,
-                modifier = Modifier.fillMaxWidth()
-            ) { Text(stringResource(R.string.setup_use_preset)) }
+            val container = com.shegrowsdev.mail.ui.common.rememberContainer()
+            val existing by container.accountStore.accounts.collectAsStateWithLifecycle()
+            val available = CompanyDirectory.emails.filter { e -> existing.none { it.email.equals(e, ignoreCase = true) } }
+            val showForm = state.companyPicked || state.manual
 
+            if (!showForm) {
+                if (available.isNotEmpty()) {
+                    Text(stringResource(R.string.setup_choose_account), style = MaterialTheme.typography.titleMedium)
+                    available.forEach { e ->
+                        OutlinedButton(onClick = { vm.pickCompanyAccount(e) }, modifier = Modifier.fillMaxWidth()) {
+                            Column(horizontalAlignment = Alignment.Start, modifier = Modifier.fillMaxWidth()) {
+                                Text(CompanyDirectory.nameOf(e), style = MaterialTheme.typography.titleSmall)
+                                Text(e.ltr(), style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+                TextButton(onClick = vm::chooseManual, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.setup_other_account))
+                }
+            } else {
+                if (state.companyPicked) {
+                    Text(CompanyDirectory.nameOf(state.email), style = MaterialTheme.typography.titleMedium)
+                    Text(state.email.ltr(), style = MaterialTheme.typography.bodyLarge)
+                } else {
+                    OutlinedButton(
+                        onClick = vm::applyApprovedPreset,
+                        enabled = !state.testing,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(stringResource(R.string.setup_use_preset)) }
+                }
+                if (!state.testing) {
+                    TextButton(onClick = vm::backToList) { Text(stringResource(R.string.setup_back_to_list)) }
+                }
+            }
+
+            if (state.manual) {
             OutlinedTextField(
                 value = state.displayName,
                 onValueChange = { v -> vm.edit { it.copy(displayName = v) } },
@@ -200,6 +264,9 @@ fun AccountSetupScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth()
             )
+            }
+
+            if (showForm) {
             OutlinedTextField(
                 value = state.password,
                 onValueChange = { v -> vm.edit { it.copy(password = v) } },
@@ -212,6 +279,7 @@ fun AccountSetupScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            if (state.manual) {
             Text(stringResource(R.string.setup_incoming), style = MaterialTheme.typography.titleSmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -260,6 +328,8 @@ fun AccountSetupScreen(
                 )
             }
 
+            }
+
             Text(
                 stringResource(R.string.setup_security_note),
                 style = MaterialTheme.typography.bodySmall,
@@ -289,6 +359,7 @@ fun AccountSetupScreen(
                 } else {
                     Text(stringResource(R.string.setup_test_and_save))
                 }
+            }
             }
         }
     }

@@ -317,4 +317,7 @@
     <string name="colleagues_you">هذا أنت</string>
     <string name="colleagues_private">صندوق البريد خاص</string>
     <string name="colleagues_write">مراسلة</string>
+    <string name="setup_choose_account">اختر حسابك</string>
+    <string name="setup_other_account">حساب بريد آخر</string>
+    <string name="setup_back_to_list">العودة إلى القائمة</string>
 </resources>
