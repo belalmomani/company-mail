@@ -79,6 +79,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.shegrowsdev.mail.AppContainer
 import com.shegrowsdev.mail.R
+import com.shegrowsdev.mail.ui.common.BrandLogo
 import com.shegrowsdev.mail.data.AccountRole
 import com.shegrowsdev.mail.mail.ConversationRow
 import com.shegrowsdev.mail.mail.Conversations
@@ -294,6 +295,7 @@ fun MailboxScreen(
         drawerContent = {
             ModalDrawerSheet {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
+                    BrandLogo(height = 120.dp, modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp))
                     Text(
                         stringResource(R.string.account_switch),
                         style = MaterialTheme.typography.titleSmall,

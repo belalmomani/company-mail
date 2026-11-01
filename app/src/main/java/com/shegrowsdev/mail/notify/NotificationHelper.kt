@@ -23,6 +23,8 @@ object NotificationHelper {
     private const val ID_FOLLOW_APPROACHING = 9001
     private const val ID_FOLLOW_OVERDUE = 9002
     const val CHANNEL_BACKUP = "backup"
+    const val CHANNEL_INSTANT = "instant_service"
+    const val ID_INSTANT = 9004
     private const val ID_BACKUP_FAILED = 9003
 
     fun ensureChannel(context: Context) {
@@ -42,11 +44,36 @@ object NotificationHelper {
         )
         manager.createNotificationChannel(
             NotificationChannel(
+                CHANNEL_INSTANT,
+                context.getString(R.string.notif_instant_channel_name),
+                NotificationManager.IMPORTANCE_MIN
+            ).apply { description = context.getString(R.string.notif_instant_channel_desc) }
+        )
+        manager.createNotificationChannel(
+            NotificationChannel(
                 CHANNEL_BACKUP,
                 context.getString(R.string.notif_backup_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply { description = context.getString(R.string.notif_backup_channel_desc) }
         )
+    }
+
+    /** The quiet, always-present notification Android requires while instant notifications are on. */
+    fun idleNotification(context: Context): android.app.Notification {
+        val open = PendingIntent.getActivity(
+            context, 9011, Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        return NotificationCompat.Builder(context, CHANNEL_INSTANT)
+            .setSmallIcon(R.drawable.ic_stat_mail)
+            .setContentTitle(context.getString(R.string.notif_instant_title))
+            .setContentText(context.getString(R.string.notif_instant_text))
+            .setContentIntent(open)
+            .setOngoing(true)
+            .setSilent(true)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .build()
     }
 
     /** Tells the administrator that the automatic backup did not complete. Contains no data from the backup. */

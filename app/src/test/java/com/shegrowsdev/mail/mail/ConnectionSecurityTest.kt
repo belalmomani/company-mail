@@ -107,6 +107,15 @@ class ConnectionSecurityTest {
 
     // ------------------------------------------------------------ settings that must never be weakened
 
+    @Test fun theLongLivedIdleConnectionIsAsSecureAndHasNoReadTimeout() {
+        val p = MailProperties.idle(account("mail.example.com", 993))
+        assertNull(p.getProperty("mail.imap.timeout"))
+        assertEquals("true", p.getProperty("mail.imap.ssl.enable"))
+        assertEquals("true", p.getProperty("mail.imap.ssl.checkserveridentity"))
+        assertNull(p.getProperty("mail.imap.starttls.enable"))
+        assertNull(p.getProperty("mail.imap.ssl.trust"))
+    }
+
     @Test fun mailSettingsUseImplicitTlsWithFullCertificateChecks() {
         val a = account("mail.example.com", 993, 465)
         for ((p, prefix) in listOf(MailProperties.imap(a) to "mail.imap.", MailProperties.smtp(a) to "mail.smtp.")) {

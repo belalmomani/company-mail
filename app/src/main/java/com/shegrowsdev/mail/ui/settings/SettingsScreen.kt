@@ -140,6 +140,40 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
+            // ---- instant notifications (device-wide)
+            val instantOn by container.adminSettings.instantEnabled.collectAsStateWithLifecycle()
+            Text(stringResource(R.string.settings_instant), style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.settings_instant_enable))
+                    Text(
+                        stringResource(R.string.settings_instant_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = instantOn,
+                    onCheckedChange = {
+                        container.adminSettings.setInstantEnabled(it)
+                        if (it) ensureNotificationPermission()
+                    }
+                )
+            }
+            if (instantOn) {
+                OutlinedButton(
+                    onClick = {
+                        // Many phones stop background connections to save battery; this opens the system screen where
+                        // the app can be set to "unrestricted".
+                        context.startActivity(
+                            android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }
+                ) { Text(stringResource(R.string.settings_instant_battery)) }
+            }
+            HorizontalDivider()
+
             // ---- follow-up reminders (device-wide)
             val remindersOn by container.adminSettings.remindersEnabled.collectAsStateWithLifecycle()
             val leadMinutes by container.adminSettings.leadMinutes.collectAsStateWithLifecycle()

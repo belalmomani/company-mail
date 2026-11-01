@@ -7,7 +7,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Date
-import java.util.Properties
+import com.sun.mail.imap.IMAPStore
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import javax.mail.event.MessageCountAdapter
+import javax.mail.event.MessageCountEvent
+import kotlinx.coroutines.Job
+import kotlin.coroutines.coroutineContext
 import java.util.concurrent.ConcurrentHashMap
 import javax.mail.Address
 import javax.mail.FetchProfile
@@ -648,6 +654,41 @@ class MailRepository(private val store: AccountStore) {
             } finally {
                 runCatching { folder.close(false) }
             }
+        }
+    }
+
+    /**
+     * Holds an IMAP IDLE connection to the Inbox and calls [onChange] whenever the server reports new messages.
+     * Returns false at once when the server has no IDLE support. Otherwise runs until the coroutine is cancelled
+     * (returns normally) or the connection fails (throws a [MailFailure]); the caller reconnects.
+     */
+    suspend fun watchInbox(accountId: String, onChange: () -> Unit): Boolean = withContext(Dispatchers.IO) {
+        val (account, password) = credentials(accountId)
+        val job = coroutineContext[Job]!!
+        val s = Session.getInstance(MailProperties.idle(account)).getStore("imap")
+        // Closing the store from outside is the only way to stop a blocking idle().
+        val handle = job.invokeOnCompletion { runCatching { s.close() } }
+        val keepAlive = Executors.newSingleThreadScheduledExecutor { r -> Thread(r, "idle-keepalive").apply { isDaemon = true } }
+        try {
+            s.connect(account.imapHost, account.imapPort, account.email, password)
+            if (!(s as IMAPStore).hasCapability("IDLE")) return@withContext false
+            val folder = s.getFolder("INBOX") as IMAPFolder
+            folder.open(Folder.READ_ONLY)
+            folder.addMessageCountListener(object : MessageCountAdapter() {
+                override fun messagesAdded(e: MessageCountEvent) = onChange()
+            })
+            // Servers drop silent connections after ~30 min; NOOP every 8 min ends the current IDLE, which is then restarted.
+            keepAlive.scheduleWithFixedDelay({
+                runCatching { folder.doCommand(IMAPFolder.ProtocolCommand { p -> p.simpleCommand("NOOP", null); null }) }
+            }, 8, 8, TimeUnit.MINUTES)
+            while (job.isActive) folder.idle()
+            true
+        } catch (e: Exception) {
+            if (!job.isActive) true else throw e.toMailFailure(Protocol.IMAP)
+        } finally {
+            handle.dispose()
+            keepAlive.shutdownNow()
+            runCatching { s.close() }
         }
     }
 

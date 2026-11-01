@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.shegrowsdev.mail.AppContainer
 import com.shegrowsdev.mail.R
+import com.shegrowsdev.mail.ui.common.BrandLogo
 import com.shegrowsdev.mail.data.Account
 import com.shegrowsdev.mail.data.ApprovedPreset
 import com.shegrowsdev.mail.ui.common.Notice
@@ -174,6 +175,7 @@ fun AccountSetupScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            BrandLogo(height = 140.dp)
             OutlinedButton(
                 onClick = vm::applyApprovedPreset,
                 enabled = !state.testing,

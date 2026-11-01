@@ -32,6 +32,14 @@ class MailApplication : Application() {
                 .collect { enabled -> SyncScheduler.update(this@MailApplication, enabled) }
         }
 
+        // Start/stop instant notifications when the switch or the accounts change (only works while the app is visible).
+        appScope.launch {
+            kotlinx.coroutines.flow.combine(
+                container.adminSettings.instantEnabled,
+                container.accountStore.accounts.map { list -> list.any { it.notificationsEnabled } }
+            ) { a, b -> a && b }.collect { com.shegrowsdev.mail.notify.InstantMail.sync(this@MailApplication) }
+        }
+
         // Daily encrypted backup runs only while switched on by an administrator.
         appScope.launch {
             container.backupSettings.autoEnabled.collect { on -> BackupScheduler.update(this@MailApplication, on) }

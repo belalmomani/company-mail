@@ -22,8 +22,7 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
         val container = (applicationContext as MailApplication).container
         for (account in container.accountStore.accounts.value.filter { it.notificationsEnabled }) {
             try {
-                val fresh = container.repository.checkNewInbox(account.id)
-                NotificationHelper.notifyNewMail(applicationContext, account, fresh)
+                NewMailChecker.check(applicationContext, container, account.id)
             } catch (e: Exception) {
                 // One failing account (offline, wrong password, ...) must not block the others.
                 // The next periodic run retries; the marker is only advanced on success.

@@ -14,7 +14,7 @@ android {
         targetSdk = 34
         // Rises with every GitHub Actions run, so each new APK is seen by Android as an UPDATE of the installed one.
         versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0) + 100
-        versionName = "0.4.0-phase4"
+        versionName = "0.4.1-instant"
     }
 
     // Release signing comes ONLY from environment variables (set from GitHub Secrets in CI, or in your own

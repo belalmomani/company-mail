@@ -304,4 +304,12 @@
     <string name="notif_backup_channel_desc">Warns when an automatic backup fails</string>
     <string name="notif_backup_failed_title">Automatic backup failed</string>
     <string name="notif_backup_failed_text">Open the backup screen to check and retry.</string>
+    <string name="settings_instant">Instant notifications</string>
+    <string name="settings_instant_enable">Notify the moment mail arrives</string>
+    <string name="settings_instant_desc">Keeps a secure connection to your mail server open. Android shows a small silent notification while it runs. Uses a little more battery.</string>
+    <string name="settings_instant_battery">Battery settings (set to Unrestricted)</string>
+    <string name="notif_instant_channel_name">Instant notifications service</string>
+    <string name="notif_instant_channel_desc">Silent notification shown while the app listens for new mail</string>
+    <string name="notif_instant_title">Listening for new mail</string>
+    <string name="notif_instant_text">Instant notifications are on</string>
 </resources>

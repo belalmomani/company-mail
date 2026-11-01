@@ -16,6 +16,12 @@ class MainActivity : AppCompatActivity() {
         setContent { AppRoot(container) }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Allowed to start the service here because the app is on screen.
+        com.shegrowsdev.mail.notify.InstantMail.sync(this)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

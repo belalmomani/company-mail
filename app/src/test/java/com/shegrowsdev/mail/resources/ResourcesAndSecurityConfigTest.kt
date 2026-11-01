@@ -63,6 +63,16 @@ class ResourcesAndSecurityConfigTest {
         assertTrue(manifest.contains("networkSecurityConfig"))
     }
 
+    @Test fun instantNotificationServiceIsPrivateAndDeclaresItsPurpose() {
+        val m = File(main, "AndroidManifest.xml").readText()
+        val service = Regex("""<service\s+android:name="\.notify\.MailIdleService"[^>]*>""").find(m)?.value
+        assertTrue("service declared", service != null)
+        assertTrue(service!!.contains("android:exported=\"false\""))
+        assertTrue(service.contains("foregroundServiceType=\"specialUse\""))
+        assertTrue(m.contains("FOREGROUND_SERVICE_SPECIAL_USE"))
+        assertTrue(m.contains("PROPERTY_SPECIAL_USE_FGS_SUBTYPE"))
+    }
+
     @Test fun appDataIsExcludedFromAndroidBackups() {
         val manifest = File(main, "AndroidManifest.xml").readText()
         assertTrue(manifest.contains("android:allowBackup=\"false\""))

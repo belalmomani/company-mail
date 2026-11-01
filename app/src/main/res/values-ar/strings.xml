@@ -304,4 +304,12 @@
     <string name="notif_backup_channel_desc">تنبيه عند فشل النسخ الاحتياطي التلقائي</string>
     <string name="notif_backup_failed_title">فشل النسخ الاحتياطي التلقائي</string>
     <string name="notif_backup_failed_text">افتح شاشة النسخ الاحتياطي للتحقق وإعادة المحاولة.</string>
+    <string name="settings_instant">الإشعارات الفورية</string>
+    <string name="settings_instant_enable">إشعار لحظة وصول البريد</string>
+    <string name="settings_instant_desc">يُبقي اتصالًا آمنًا مفتوحًا بخادم البريد. يعرض أندرويد إشعارًا صغيرًا صامتًا أثناء عمله، ويستهلك قليلًا من البطارية.</string>
+    <string name="settings_instant_battery">إعدادات البطارية (اختر: غير مقيّد)</string>
+    <string name="notif_instant_channel_name">خدمة الإشعارات الفورية</string>
+    <string name="notif_instant_channel_desc">إشعار صامت يظهر أثناء استماع التطبيق للبريد الجديد</string>
+    <string name="notif_instant_title">بانتظار البريد الجديد</string>
+    <string name="notif_instant_text">الإشعارات الفورية مفعّلة</string>
 </resources>

@@ -27,6 +27,15 @@ Android Keystore key. The app tests a real IMAP + SMTP login before saving. Set 
 - Phase 3: tasks, official register (unique serials), follow-up reminders, unified inbox, dashboard, roles.
 - Phase 4 (this version): **encrypted backup and restore** (administrators only), error handling for backup/connection failures, tests, release APK/AAB.
 
+## Design and instant notifications (version 0.4.1)
+- Colours and icon follow the She Grows for Development logo (leaf green, sun yellow); the logo shows on the sign-in screen and the side menu.
+- **Instant notifications**: the app keeps a secure IMAP IDLE connection per account (notifications on) and notifies the moment the server
+  reports a new message. Android shows a small silent notification while it runs (required for any always-on connection). Switch:
+  Settings -> Instant notifications. The 15-minute check remains as a safety net, and one lock prevents duplicate notifications.
+- Limits: needs a mail server with IDLE (otherwise only the 15-minute check applies); some phones kill background apps — in Settings use
+  "Battery settings" and set the app to *Unrestricted*; after a reboot it restarts on its own, and if Android refuses a background start it
+  resumes when the app is next opened; on Google Play this foreground-service type needs a declaration in the Play Console.
+
 ## Backup and restore (menu -> Backup and restore, administrators only)
 - **Scope: administrative data only** — tasks and history, official register, follow-ups and the message references they use.
   It does **not** contain e-mail messages, attachments, passwords or account settings (mail stays on the mail server).

@@ -21,6 +21,12 @@ internal object MailProperties {
         put("mail.imap.peek", "true")
     }
 
+    /**
+     * For the long-lived IDLE connection: the same secure settings, but NO read timeout (the server stays silent
+     * until something arrives; a keep-alive command is sent regularly instead).
+     */
+    fun idle(a: Account) = imap(a).apply { remove("mail.imap.timeout") }
+
     fun smtp(a: Account) = Properties().apply {
         put("mail.transport.protocol", "smtp")
         put("mail.smtp.host", a.smtpHost)
