@@ -52,6 +52,11 @@ fun FailureKind.messageRes(): Int = when (this) {
     FailureKind.SEARCH_FAILED -> R.string.err_search_failed
     FailureKind.NOT_PERMITTED -> R.string.err_not_permitted
     FailureKind.DATA_ERROR -> R.string.err_data
+    FailureKind.BACKUP_BAD_FILE -> R.string.err_backup_bad_file
+    FailureKind.BACKUP_WRONG_PASSPHRASE -> R.string.err_backup_passphrase
+    FailureKind.BACKUP_WRITE -> R.string.err_backup_write
+    FailureKind.BACKUP_NO_PASSPHRASE -> R.string.err_backup_no_passphrase
+    FailureKind.BACKUP_RESTORE -> R.string.err_backup_restore
     FailureKind.UNKNOWN -> R.string.err_generic
 }
 

@@ -74,30 +74,9 @@ class MailRepository(private val store: AccountStore) {
         }
     }
 
-    private fun imapProperties(a: Account) = Properties().apply {
-        put("mail.store.protocol", "imap")
-        put("mail.imap.host", a.imapHost)
-        put("mail.imap.port", a.imapPort.toString())
-        put("mail.imap.ssl.enable", "true")
-        put("mail.imap.ssl.checkserveridentity", "true")
-        put("mail.imap.connectiontimeout", "15000")
-        put("mail.imap.timeout", "30000")
-        put("mail.imap.writetimeout", "30000")
-        // Reading a body must not silently mark the message as read; we do it explicitly.
-        put("mail.imap.peek", "true")
-    }
+    private fun imapProperties(a: Account) = MailProperties.imap(a)
 
-    private fun smtpProperties(a: Account) = Properties().apply {
-        put("mail.transport.protocol", "smtp")
-        put("mail.smtp.host", a.smtpHost)
-        put("mail.smtp.port", a.smtpPort.toString())
-        put("mail.smtp.ssl.enable", "true")
-        put("mail.smtp.ssl.checkserveridentity", "true")
-        put("mail.smtp.auth", "true")
-        put("mail.smtp.connectiontimeout", "15000")
-        put("mail.smtp.timeout", "30000")
-        put("mail.smtp.writetimeout", "30000")
-    }
+    private fun smtpProperties(a: Account) = MailProperties.smtp(a)
 
     private fun credentials(accountId: String): Pair<Account, String> {
         val account = store.get(accountId) ?: throw MailFailure(FailureKind.ACCOUNT_NOT_FOUND)

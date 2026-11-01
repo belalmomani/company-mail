@@ -27,6 +27,9 @@ object Permissions {
     fun canSeeAccount(viewer: Viewer, accountId: String): Boolean =
         viewer.isAdmin || viewer.accountId == accountId
 
+    /** Backup and restore touch every employee's administrative data, so they are for administrators only. */
+    fun canManageBackups(viewer: Viewer?): Boolean = viewer?.isAdmin == true
+
     /** Task / register rows: own account's rows, or rows assigned to the viewer's address. */
     fun canSeeRow(viewer: Viewer, rowAccountId: String, assigneeEmail: String?): Boolean =
         viewer.isAdmin || rowAccountId == viewer.accountId ||

@@ -77,10 +77,7 @@ class AdminDb(context: Context) : SQLiteOpenHelper(context.applicationContext, N
         )
         db.execSQL("CREATE INDEX idx_tasks_ref ON tasks(ref_id)")
         db.execSQL("CREATE INDEX idx_tasks_status ON tasks(status, due_at)")
-        db.execSQL(
-            """CREATE TRIGGER tasks_ref_immutable BEFORE UPDATE OF ref_id, account_id ON tasks
-               BEGIN SELECT RAISE(ABORT, 'a task cannot be moved to another message'); END"""
-        )
+        db.execSQL(TRIGGER_TASKS_REF)
 
         db.execSQL(
             """CREATE TABLE task_events(
@@ -112,14 +109,8 @@ class AdminDb(context: Context) : SQLiteOpenHelper(context.applicationContext, N
                 created_at INTEGER NOT NULL
             )"""
         )
-        db.execSQL(
-            """CREATE TRIGGER register_immutable BEFORE UPDATE OF seq, ref_id ON register_entries
-               BEGIN SELECT RAISE(ABORT, 'register serial number and message link are fixed'); END"""
-        )
-        db.execSQL(
-            """CREATE TRIGGER register_no_delete BEFORE DELETE ON register_entries
-               BEGIN SELECT RAISE(ABORT, 'register entries cannot be deleted'); END"""
-        )
+        db.execSQL(TRIGGER_REGISTER_IMMUTABLE)
+        db.execSQL(TRIGGER_REGISTER_NO_DELETE)
 
         db.execSQL(
             """CREATE TABLE follow_ups(
@@ -146,5 +137,16 @@ class AdminDb(context: Context) : SQLiteOpenHelper(context.applicationContext, N
     companion object {
         const val NAME = "company_mail_admin.db"
         const val VERSION = 1
+
+        // Kept here so that a restore can drop and recreate exactly the same triggers.
+        const val TRIGGER_TASKS_REF =
+            """CREATE TRIGGER tasks_ref_immutable BEFORE UPDATE OF ref_id, account_id ON tasks
+               BEGIN SELECT RAISE(ABORT, 'a task cannot be moved to another message'); END"""
+        const val TRIGGER_REGISTER_IMMUTABLE =
+            """CREATE TRIGGER register_immutable BEFORE UPDATE OF seq, ref_id ON register_entries
+               BEGIN SELECT RAISE(ABORT, 'register serial number and message link are fixed'); END"""
+        const val TRIGGER_REGISTER_NO_DELETE =
+            """CREATE TRIGGER register_no_delete BEFORE DELETE ON register_entries
+               BEGIN SELECT RAISE(ABORT, 'register entries cannot be deleted'); END"""
     }
 }

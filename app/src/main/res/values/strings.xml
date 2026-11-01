@@ -266,4 +266,42 @@
     <string name="dash_duration_hm" formatted="true">%1$d h %2$d min</string>
     <string name="dash_duration_m" formatted="true">%1$d min</string>
     <string name="dash_definitions">How it is counted: a message is one e-mail; a transaction is a conversation. Response time runs from receiving a message to the first reply sent from the same account in the same conversation (a reply that answers it directly takes priority). Only messages and replies handled through this app are known to it, so a reply written elsewhere is not counted. Message counts come from the mail server by calendar day. Nothing on this page is sample data.</string>
+    <string name="err_backup_bad_file">This is not a valid Company Mail backup, or the file is damaged.</string>
+    <string name="err_backup_passphrase">Wrong passphrase, or the backup file was modified. Nothing was changed.</string>
+    <string name="err_backup_write">The backup could not be saved or verified. Check free storage and try again.</string>
+    <string name="err_backup_no_passphrase">Enter a passphrase of at least 10 characters.</string>
+    <string name="err_backup_restore">The restore failed and your current data was not changed.</string>
+    <string name="backup_title">Backup and restore</string>
+    <string name="backup_admin_only">Backup and restore are available to administrator accounts only.</string>
+    <string name="backup_scope_title">What a backup contains</string>
+    <string name="backup_scope_body">Administrative data only: tasks and their history, the official register, follow-up reminders and the message references they use. It does NOT contain e-mail messages, attachments, passwords or account settings; mail stays on the mail server. Backups are encrypted with your passphrase. Without the passphrase they cannot be opened, and it cannot be recovered, so keep it safe. Copies kept on this device are deleted if the app is uninstalled: export a copy to a safe place.</string>
+    <string name="backup_passphrase">Passphrase</string>
+    <string name="backup_passphrase_hint" formatted="true">At least %1$d characters. Not stored unless automatic backup is on.</string>
+    <string name="backup_now">Back up now</string>
+    <string name="backup_import">Restore from file</string>
+    <string name="backup_auto">Automatic daily backup</string>
+    <string name="backup_auto_desc">Uses the passphrase above, kept encrypted on this device. Turning it off removes the stored passphrase.</string>
+    <string name="backup_last_ok" formatted="true">Last automatic backup: %1$s</string>
+    <string name="backup_last_failed" formatted="true">Last automatic backup FAILED: %1$s</string>
+    <string name="backup_list_title">Backups on this device</string>
+    <string name="backup_none">No backups yet.</string>
+    <string name="backup_kind_auto">Automatic</string>
+    <string name="backup_kind_manual">Manual</string>
+    <string name="backup_kind_safety">Safety copy before a restore</string>
+    <string name="backup_restore">Restore</string>
+    <string name="backup_export">Export</string>
+    <string name="backup_restore_title">Restore this backup?</string>
+    <string name="backup_restore_warning">All current tasks, register entries and reminders will be REPLACED by the ones in the backup. A safety copy of the current data is made first. Enter the passphrase the backup was made with.</string>
+    <string name="backup_delete_title">Delete this backup?</string>
+    <string name="backup_delete_body" formatted="true">The backup from %1$s will be deleted from this device.</string>
+    <string name="backup_done">Backup created and verified.</string>
+    <string name="backup_restored">Restore completed.</string>
+    <string name="backup_exported">Backup exported.</string>
+    <string name="backup_deleted">Backup deleted.</string>
+    <string name="backup_auto_enabled">Automatic backup is on.</string>
+    <string name="backup_auto_disabled">Automatic backup is off.</string>
+    <string name="notif_backup_channel_name">Backups</string>
+    <string name="notif_backup_channel_desc">Warns when an automatic backup fails</string>
+    <string name="notif_backup_failed_title">Automatic backup failed</string>
+    <string name="notif_backup_failed_text">Open the backup screen to check and retry.</string>
 </resources>

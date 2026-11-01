@@ -12,12 +12,34 @@ android {
         applicationId = "com.shegrowsdev.mail"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.3.0-phase3"
+        // Rises with every GitHub Actions run, so each new APK is seen by Android as an UPDATE of the installed one.
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0) + 100
+        versionName = "0.4.0-phase4"
+    }
+
+    // Release signing comes ONLY from environment variables (set from GitHub Secrets in CI, or in your own
+    // shell). Nothing secret is ever written in this file or in the repository. Without them the release
+    // build is simply left unsigned.
+    val keystorePath: String? = System.getenv("KEYSTORE_FILE")
+    signingConfigs {
+        if (!keystorePath.isNullOrBlank() && file(keystorePath).isFile) {
+            create("shared") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
+        // Debug builds use the SAME key as release (when provided). Without it every CI run would sign with a
+        // new random debug key and Android would refuse to update the installed app.
+        debug {
+            signingConfigs.findByName("shared")?.let { signingConfig = it }
+        }
         release {
+            signingConfigs.findByName("shared")?.let { signingConfig = it }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

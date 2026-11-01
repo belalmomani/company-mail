@@ -266,4 +266,42 @@
     <string name="dash_duration_hm" formatted="true">%1$d ساعة %2$d دقيقة</string>
     <string name="dash_duration_m" formatted="true">%1$d دقيقة</string>
     <string name="dash_definitions">طريقة الاحتساب: الرسالة هي بريد إلكتروني واحد، والمعاملة هي محادثة. يُحسب وقت الرد من استلام الرسالة حتى أول رد يُرسَل من الحساب نفسه في المحادثة نفسها (ويُقدَّم الرد المباشر عليها). لا يعرف التطبيق إلا الرسائل والردود التي مرّت عبره، فلا يُحتسب رد كُتب من مكان آخر. أعداد الرسائل مأخوذة من خادم البريد بحسب اليوم التقويمي. لا توجد في هذه الصفحة أي بيانات تجريبية.</string>
+    <string name="err_backup_bad_file">هذا الملف ليس نسخة احتياطية صالحة للتطبيق أو أنه تالف.</string>
+    <string name="err_backup_passphrase">عبارة المرور غير صحيحة أو أن ملف النسخة عُدّل. لم يتغير أي شيء.</string>
+    <string name="err_backup_write">تعذّر حفظ النسخة الاحتياطية أو التحقق منها. تأكد من توفر مساحة تخزين وحاول مجددًا.</string>
+    <string name="err_backup_no_passphrase">أدخل عبارة مرور من 10 أحرف على الأقل.</string>
+    <string name="err_backup_restore">فشلت الاستعادة ولم تتغير بياناتك الحالية.</string>
+    <string name="backup_title">النسخ الاحتياطي والاستعادة</string>
+    <string name="backup_admin_only">النسخ الاحتياطي والاستعادة متاحان لحسابات المدير فقط.</string>
+    <string name="backup_scope_title">ما تحتويه النسخة الاحتياطية</string>
+    <string name="backup_scope_body">بيانات الإدارة فقط: المهام وسجلّها، والسجل الرسمي، وتذكيرات المتابعة، ومراجع الرسائل التي تستخدمها. لا تحتوي على رسائل البريد ولا المرفقات ولا كلمات المرور ولا إعدادات الحسابات؛ فالبريد يبقى على خادم البريد. تُشفَّر النسخ بعبارة المرور الخاصة بك، ولا يمكن فتحها بدونها ولا يمكن استرجاعها، فاحتفظ بها في مكان آمن. النسخ المحفوظة على هذا الجهاز تُحذف عند إزالة التطبيق، لذا صدّر نسخة إلى مكان آمن.</string>
+    <string name="backup_passphrase">عبارة المرور</string>
+    <string name="backup_passphrase_hint" formatted="true">%1$d أحرف على الأقل. لا تُحفظ إلا عند تفعيل النسخ التلقائي.</string>
+    <string name="backup_now">نسخ احتياطي الآن</string>
+    <string name="backup_import">استعادة من ملف</string>
+    <string name="backup_auto">نسخ احتياطي تلقائي يوميًا</string>
+    <string name="backup_auto_desc">تُستخدم عبارة المرور أعلاه وتُحفظ مشفّرة على هذا الجهاز. إيقافه يحذف العبارة المحفوظة.</string>
+    <string name="backup_last_ok" formatted="true">آخر نسخ تلقائي: %1$s</string>
+    <string name="backup_last_failed" formatted="true">فشل آخر نسخ تلقائي: %1$s</string>
+    <string name="backup_list_title">النسخ المحفوظة على هذا الجهاز</string>
+    <string name="backup_none">لا توجد نسخ احتياطية بعد.</string>
+    <string name="backup_kind_auto">تلقائية</string>
+    <string name="backup_kind_manual">يدوية</string>
+    <string name="backup_kind_safety">نسخة أمان قبل استعادة</string>
+    <string name="backup_restore">استعادة</string>
+    <string name="backup_export">تصدير</string>
+    <string name="backup_restore_title">استعادة هذه النسخة؟</string>
+    <string name="backup_restore_warning">ستُستبدل كل المهام وقيود السجل والتذكيرات الحالية بما في النسخة. تُنشأ نسخة أمان للبيانات الحالية أولًا. أدخل عبارة المرور التي أُنشئت بها النسخة.</string>
+    <string name="backup_delete_title">حذف هذه النسخة؟</string>
+    <string name="backup_delete_body" formatted="true">ستُحذف نسخة %1$s من هذا الجهاز.</string>
+    <string name="backup_done">تم إنشاء النسخة الاحتياطية والتحقق منها.</string>
+    <string name="backup_restored">اكتملت الاستعادة.</string>
+    <string name="backup_exported">تم تصدير النسخة.</string>
+    <string name="backup_deleted">تم حذف النسخة.</string>
+    <string name="backup_auto_enabled">تم تفعيل النسخ التلقائي.</string>
+    <string name="backup_auto_disabled">تم إيقاف النسخ التلقائي.</string>
+    <string name="notif_backup_channel_name">النسخ الاحتياطي</string>
+    <string name="notif_backup_channel_desc">تنبيه عند فشل النسخ الاحتياطي التلقائي</string>
+    <string name="notif_backup_failed_title">فشل النسخ الاحتياطي التلقائي</string>
+    <string name="notif_backup_failed_text">افتح شاشة النسخ الاحتياطي للتحقق وإعادة المحاولة.</string>
 </resources>

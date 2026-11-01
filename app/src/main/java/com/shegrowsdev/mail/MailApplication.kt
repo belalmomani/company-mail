@@ -1,6 +1,7 @@
 package com.shegrowsdev.mail
 
 import android.app.Application
+import com.shegrowsdev.mail.backup.BackupScheduler
 import com.shegrowsdev.mail.data.AttachmentFiles
 import com.shegrowsdev.mail.notify.NotificationHelper
 import com.shegrowsdev.mail.notify.SyncScheduler
@@ -29,6 +30,11 @@ class MailApplication : Application() {
             container.accountStore.accounts
                 .map { list -> list.any { it.notificationsEnabled } }
                 .collect { enabled -> SyncScheduler.update(this@MailApplication, enabled) }
+        }
+
+        // Daily encrypted backup runs only while switched on by an administrator.
+        appScope.launch {
+            container.backupSettings.autoEnabled.collect { on -> BackupScheduler.update(this@MailApplication, on) }
         }
     }
 }

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.AllInbox
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -78,6 +79,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.shegrowsdev.mail.AppContainer
 import com.shegrowsdev.mail.R
+import com.shegrowsdev.mail.data.AccountRole
 import com.shegrowsdev.mail.mail.ConversationRow
 import com.shegrowsdev.mail.mail.Conversations
 import com.shegrowsdev.mail.mail.FolderRole
@@ -265,6 +267,7 @@ fun MailboxScreen(
     onRegister: () -> Unit,
     onFollowUps: () -> Unit,
     onDashboard: () -> Unit,
+    onBackup: () -> Unit,
 ) {
     val container = rememberContainer()
     val vm = containerViewModel { MailboxViewModel(it) }
@@ -350,6 +353,11 @@ fun MailboxScreen(
                         Triple(R.string.register_title, Icons.AutoMirrored.Filled.MenuBook, onRegister),
                         Triple(R.string.followups_title, Icons.Filled.Alarm, onFollowUps),
                         Triple(R.string.dash_title, Icons.Filled.Dashboard, onDashboard),
+                    ).plus(
+                        // Backup and restore cover every employee's data: administrators only.
+                        if (activeAccount?.role == AccountRole.ADMIN) {
+                            listOf(Triple(R.string.backup_title, Icons.Filled.Backup, onBackup))
+                        } else emptyList()
                     ).forEach { (label, icon, action) ->
                         NavigationDrawerItem(
                             label = { Text(stringResource(label)) },

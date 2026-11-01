@@ -21,6 +21,7 @@ import com.shegrowsdev.mail.AppContainer
 import com.shegrowsdev.mail.mail.FolderRole
 import com.shegrowsdev.mail.ui.accounts.AccountSetupScreen
 import com.shegrowsdev.mail.ui.compose.ComposeMode
+import com.shegrowsdev.mail.ui.backup.BackupScreen
 import com.shegrowsdev.mail.ui.dashboard.DashboardScreen
 import com.shegrowsdev.mail.ui.followups.FollowUpsScreen
 import com.shegrowsdev.mail.ui.register.RegisterScreen
@@ -43,6 +44,7 @@ internal object Routes {
     const val REGISTER = "register"
     const val FOLLOWUPS = "followups"
     const val DASHBOARD = "dashboard"
+    const val BACKUP = "backup"
     const val MESSAGE = "message/{role}/{uid}"
     const val COMPOSE = "compose/{mode}/{role}/{uid}"
 
@@ -102,6 +104,7 @@ fun AppRoot(container: AppContainer) {
                     onRegister = { nav.navigate(Routes.REGISTER) },
                     onFollowUps = { nav.navigate(Routes.FOLLOWUPS) },
                     onDashboard = { nav.navigate(Routes.DASHBOARD) },
+                    onBackup = { nav.navigate(Routes.BACKUP) },
                 )
             }
 
@@ -144,6 +147,10 @@ fun AppRoot(container: AppContainer) {
 
             composable(Routes.DASHBOARD) {
                 DashboardScreen(onBack = { nav.popBackStack() })
+            }
+
+            composable(Routes.BACKUP) {
+                BackupScreen(onBack = { nav.popBackStack() })
             }
 
             composable(

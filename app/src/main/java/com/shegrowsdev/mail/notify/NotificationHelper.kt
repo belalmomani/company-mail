@@ -22,6 +22,8 @@ object NotificationHelper {
     const val CHANNEL_FOLLOW_UPS = "follow_ups"
     private const val ID_FOLLOW_APPROACHING = 9001
     private const val ID_FOLLOW_OVERDUE = 9002
+    const val CHANNEL_BACKUP = "backup"
+    private const val ID_BACKUP_FAILED = 9003
 
     fun ensureChannel(context: Context) {
         val channel = NotificationChannel(
@@ -38,6 +40,41 @@ object NotificationHelper {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply { description = context.getString(R.string.notif_followup_channel_desc) }
         )
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_BACKUP,
+                context.getString(R.string.notif_backup_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply { description = context.getString(R.string.notif_backup_channel_desc) }
+        )
+    }
+
+    /** Tells the administrator that the automatic backup did not complete. Contains no data from the backup. */
+    fun notifyBackupFailed(context: Context) {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) return
+        val open = PendingIntent.getActivity(
+            context,
+            9010,
+            Intent(context, MainActivity::class.java)
+                .putExtra(MainActivity.EXTRA_ROUTE, "backup")
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        val notification = NotificationCompat.Builder(context, CHANNEL_BACKUP)
+            .setSmallIcon(R.drawable.ic_stat_mail)
+            .setContentTitle(context.getString(R.string.notif_backup_failed_title))
+            .setContentText(context.getString(R.string.notif_backup_failed_text))
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .build()
+        try {
+            NotificationManagerCompat.from(context).notify(ID_BACKUP_FAILED, notification)
+        } catch (e: SecurityException) {
+            // Without the permission the failure is still shown on the backup screen.
+        }
     }
 
     /**
